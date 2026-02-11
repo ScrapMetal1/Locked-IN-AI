@@ -18,5 +18,5 @@
     "src/background/index.ts",
     "type": "module" 
 },
-"action" : { default_popup: "index.html"}
+"action" : { "default_popup": "index.html"}
 }
