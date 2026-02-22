@@ -1,0 +1,31 @@
+import { analyzeUrl } from '../services/llm';
+import { getGoal } from '../services/storage';
+
+// this is the brain of the extension — runs silently, no ui
+// watches every tab and decides if it should be blocked
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+
+    // only care when the page has fully loaded and has a real url
+    if (changeInfo.status !== "complete" || !tab.url) return;
+
+    // skip internal browser pages like chrome:// or about:blank
+    if (!tab.url.startsWith("http://") && !tab.url.startsWith("https://")) return;
+
+    // read what the user set up — are they in a session? what's their goal?
+    const state = await getGoal();
+
+    // if they're not locked in, do nothing
+    if (!state.isLockedIn) return;
+
+    // ask the backend: is this url a distraction for this goal?
+    const result = await analyzeUrl(tab.url, tab.title || "", state.currentGoal);
+
+    // if the ai says block it, redirect to our blocked page
+    if (!result.allowed) {
+        console.log(`blocking ${tab.url} — ${result.reason}`);
+        chrome.tabs.update(tabId, {
+            url: chrome.runtime.getURL(`blocked.html?reason=${encodeURIComponent(result.reason)}&goal=${encodeURIComponent(state.currentGoal)}`)
+        });
+    }
+});

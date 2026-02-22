@@ -1,58 +1,49 @@
 import { ScanResult } from '../types';
-import { GoogleGenAI } from '@google/generative-ai'; // assuming this is your wrapper/sdk
+import { getIdToken } from './auth';
 
-// initialize outside to keep things fast
-const ai = new GoogleGenAI({
-    vertexai: true,
-    project: "locked-in-ai-487607",
-    location: "us-central1"
-});
+// url of our deployed cloud function
+const API_URL = 'https://us-central1-locked-in-ai-487607.cloudfunctions.net/api/analyze';
 
+//background script calls this everytime the tab loads. 
 export async function analyzeUrl(url: string, title: string, goal: string): Promise<ScanResult> {
   try {
-    // setup the guardrails for the model
-    const sys_prompt = "you are a productivity gatekeeper. classify sites as 'ALLOW' or 'BLOCK' based on the user's current goal.";
-    
-    // focus the ai on the relationship between the url and the intent
-    const prompt = `
-      user goal: "${goal}"
-      visiting: ${url} (${title || "no title"})
-      
-      is this distracting?
-      reply json: { "allow": boolean, "reason": "string" }
-    `;
+    // grab the user's identity token — this is the key that unlocks our api
+    const token = await getIdToken();
 
-    // trigger the ai call
-    const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash", // updated to match current available flash models
-        config: {
-            systemInstruction: {
-                parts: [{ text: sys_prompt }]
-            },
-            responseMimeType: "application/json"
-        },
-        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+    // no token means not logged in — fail safe, just let them through
+    if (!token) {
+      console.warn("analyzeUrl: user not logged in, allowing by default.");
+      return { allowed: true, reason: "User not logged in." };
+    }
+
+    // hit the backend with the url, title and goal
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` // attaches the user's identity to the request
+      },
+      body: JSON.stringify({ url, title, userGoal: goal })
     });
 
-    // parse the string response into an object
-    const decision = JSON.parse(response.text);
+    // if the backend throws an error, don't take it out on the user — just allow
+    if (!response.ok) {
+      console.error("Backend error:", response.status, response.statusText);
+      return { allowed: true, reason: "Backend error, allowing by default." };
+    }
 
-    // map the ai verdict back to our scanresult format
+    // parse what the ai said — should be { allow: boolean, reason: string }
+    const verdict = await response.json();
+
+    // map it to the ScanResult shape the rest of the app uses
     return {
-      url,
-      isRelevant: decision.allow,
-      confidence: 0.9, // ai is usually pretty certain
-      summary: decision.reason
+      allowed: verdict.allow,
+      reason: verdict.reason
     };
 
   } catch (err: any) {
-    // log the failure and fail-safe to 'relevant' so we don't break the user's flow
-    console.error("ai analysis failed:", err);
-    return {
-      url,
-      isRelevant: true, 
-      confidence: 0,
-      summary: "error in ai processing; defaulting to allow."
-    };
+    console.error("analyzeUrl failed:", err); // log it so we can debug
+    // something broke — don't punish the user for it
+    return { allowed: true, reason: "Network error, allowing by default." };
   }
 }

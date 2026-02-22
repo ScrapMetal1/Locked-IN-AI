@@ -9,13 +9,15 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for auth state changes (login / logout)
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
+    // Listener for auth state changes (login / logout) exectues the input function and retuns another function unsuscribe. 
+    const unsubscribe = onAuthStateChanged(auth, (u) => { //if auth changes it runs this function
+        setUser(u);
+        setLoading(false);
     });
-    return () => unsubscribe(); // cleanup listener on unmount
-  }, []);
+    return () => unsubscribe(); //define a anon function which runs unsuscribe
+  }, []); // useEffect has two inputs. The function it runs and the dependency array. 
+
+
 
   const handleSignIn = async () => {
     setError(null);
