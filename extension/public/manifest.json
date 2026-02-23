@@ -1,22 +1,22 @@
 {
-"manifest_version" : 3,
-"name" : "Locked In - AI",
-"version" : "1.0",
-"description" : "Distraction Blocker compliant with your goals",
-"permissions" : [
-    "storage",
-    "activeTab",
-    "scripting",
-    "tabs"
-],
-"host_permissions" : [
-    "<all_urls>"
-],
-
-"background": {
-    "service_worker":
-    "src/background/index.ts",
-    "type": "module" 
-},
-"action" : { "default_popup": "index.html"}
+    "manifest_version": 3,
+    "name": "Locked In - AI",
+    "version": "1.0",
+    "description": "Distraction Blocker compliant with your goals",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting",
+        "tabs"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "action": {
+        "default_popup": "index.html"
+    }
 }

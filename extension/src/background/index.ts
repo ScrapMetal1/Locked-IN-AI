@@ -1,5 +1,5 @@
 import { analyzeUrl } from '../services/llm';
-import { getGoal } from '../services/storage';
+import { getSession } from '../services/storage';
 
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
@@ -13,7 +13,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (!tab.url.startsWith("http://") && !tab.url.startsWith("https://")) return;
 
     // read what the user set up — are they in a session? what's their goal?
-    const state = await getGoal();
+    const state = await getSession();
 
     // if they're not locked in, do nothing
     if (!state.isLockedIn) return;

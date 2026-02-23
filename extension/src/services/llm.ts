@@ -10,10 +10,11 @@ export async function analyzeUrl(url: string, title: string, goal: string): Prom
     // grab the user's identity token — this is the key that unlocks our api
     const token = await getIdToken();
 
-    // no token means not logged in — fail safe, just let them through
+    // no token means not logged in — it shouldn't happen but just in case the token expires let them through. 
     if (!token) {
       console.warn("analyzeUrl: user not logged in, allowing by default.");
-      return { allowed: true, reason: "User not logged in." };
+      return { allowed: false, reason: "Session expired. Please log in again." };
+      //return { allowed: true, reason: "User not logged in." }; 
     }
 
     // hit the backend with the url, title and goal
