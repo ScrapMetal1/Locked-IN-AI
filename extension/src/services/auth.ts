@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, type User } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithCredential, signOut as firebaseSignOut, type User } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -14,13 +14,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, "lockedin-userdb"); // named database
-const provider = new GoogleAuthProvider();
+//const provider = new GoogleAuthProvider(); //chrome handles this now. 
 
 export async function signIn() {
     try {
-        const result = await signInWithPopup(auth, provider);
-        // Save user profile to Firestore on first login / each login
-        if (result.user) {
+        // // clear any cached token so Chrome asks again
+        // const cached = await chrome.identity.getAuthToken({ interactive: false });
+        // if (cached.token) {
+        //     await chrome.identity.removeCachedAuthToken({ token: cached.token });
+        // }
+
+        const token = await chrome.identity.getAuthToken({interactive: true}); // chrome open its own trusted google login window
+
+        const credential = GoogleAuthProvider.credential(null, token.token); // use that token to create a firebase credential
+
+        const result = await signInWithCredential(auth, credential); //sign into firebase
+
+        if (result.user) { //save result to firestore db
             await saveUserProfile(result.user);
         }
         return result.user;
