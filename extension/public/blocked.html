@@ -201,18 +201,10 @@
 
         <p class="quote">"The successful warrior is the average person, with laser-like focus."<br>— Bruce Lee</p>
 
-        <button class="btn" onclick="window.close()">Close Tab</button>
+        <button class="btn" id="close-btn">Close Tab</button>
     </div>
 
-    <script>
-        // read the reason and goal from the url params passed by the background script
-        const params = new URLSearchParams(window.location.search);
-        const reason = params.get('reason');
-        const goal = params.get('goal');
-
-        if (reason) document.getElementById('reason').textContent = reason;
-        if (goal) document.getElementById('goal').textContent = goal;
-    </script>
+    <script src="blocked.js"></script>
 </body>
 
 </html>

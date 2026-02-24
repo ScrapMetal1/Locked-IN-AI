@@ -10,7 +10,7 @@
     --font: 'Inter', sans-serif;
 }
 
-* {// TODO: Optim
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;

@@ -70,73 +70,107 @@ function App() {
   // --- Render ---
 
   if (isLoading_ui) {
-    return <div className="p-4 flex justify-center items-center">Loading...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--muted)', fontSize: 14 }}>
+        Loading...
+      </div>
+    );
   }
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-gray-900 text-white">
-      <div className="w-[350px] p-6 flex flex-col items-center space-y-4">
-        <h1 className="text-4xl font-bold text-blue-500">Locked In 🔒</h1>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
+      <div style={{ width: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
 
+        {/* header */}
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ fontSize: 40, display: 'block', marginBottom: 8, filter: 'drop-shadow(0 0 16px rgba(34,197,94,0.5))' }}>🔒</span>
+          <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: -1, color: 'var(--text)', margin: 0 }}>
+            Locked <span style={{ color: 'var(--accent)' }}>In</span>
+          </h1>
+        </div>
+
+        {/* error banner */}
         {authError_ui && (
-          <div className="w-full bg-red-900 border border-red-500 text-red-200 px-4 py-3 rounded text-xs break-words">
+          <div style={{
+            width: '100%', padding: '10px 14px', borderRadius: 8,
+            background: 'rgba(220, 38, 38, 0.12)', border: '1px solid rgba(220, 38, 38, 0.3)',
+            color: '#f87171', fontSize: 12
+          }}>
             {authError_ui}
           </div>
         )}
 
         {loggedInUser_ui ? (
-          // ── LOGGED IN ──────────────────────────────────────────────────────
-          <div className="flex flex-col items-center w-full space-y-4">
-            <p className="text-sm text-gray-400">Welcome, {loggedInUser_ui.displayName || loggedInUser_ui.email}</p>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
+              Welcome, <span style={{ color: 'var(--text)', fontWeight: 500 }}>{loggedInUser_ui.displayName || loggedInUser_ui.email}</span>
+            </p>
 
             {session_ui?.isLockedIn ? (
-              // ── STATE 3: SESSION ACTIVE ──────────────────────────────────
-              <div className="flex flex-col items-center w-full space-y-4">
-                <div className="w-full bg-green-900 border border-green-600 rounded p-3 text-sm text-green-200">
-                  🟢 Session active: <strong>{session_ui.currentGoal}</strong>
+              // ── SESSION ACTIVE ──
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{
+                  width: '100%', padding: '14px 16px', borderRadius: 10,
+                  background: 'var(--accent-dim)', border: '1px solid rgba(34, 197, 94, 0.2)',
+                  fontSize: 13, lineHeight: 1.6
+                }}>
+                  <span style={{ display: 'block', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: 1, color: 'var(--accent)', marginBottom: 6, fontWeight: 600 }}>
+                    🟢 session active
+                  </span>
+                  <span style={{ color: 'var(--text)', fontWeight: 500 }}>{session_ui.currentGoal}</span>
                 </div>
-                <button
-                  onClick={handleEndSession}
-                  className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded shadow transition-colors"
-                >
+                <button onClick={handleEndSession} style={{
+                  width: '100%', padding: '10px 0', borderRadius: 8, border: '1px solid var(--border)',
+                  background: 'var(--surface)', color: '#f87171', fontSize: 13, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'var(--font)'
+                }}>
                   End Session
                 </button>
               </div>
             ) : (
-              // ── STATE 2: LOGGED IN, NO SESSION ───────────────────────────
-              <div className="flex flex-col items-center w-full space-y-3">
+              // ── NO SESSION ──
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <input
                   type="text"
-                  placeholder="What are you working on?"
+                  placeholder="what are you working on?"
                   value={goalDraft_text}
                   onChange={(e) => setGoalDraft_text(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  style={{
+                    width: '100%', padding: '10px 14px', borderRadius: 8,
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font)',
+                    outline: 'none'
+                  }}
                 />
-                <button
-                  onClick={handleLockIn}
-                  className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded shadow transition-colors"
-                >
+                <button onClick={handleLockIn} style={{
+                  width: '100%', padding: '11px 0', borderRadius: 8, border: 'none',
+                  background: 'var(--accent)', color: '#000', fontSize: 14, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'var(--font)'
+                }}>
                   🔒 Lock In
                 </button>
-                <button
-                  onClick={() => signOut()}
-                  className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded shadow transition-colors text-sm"
-                >
+                <button onClick={() => signOut()} style={{
+                  width: '100%', padding: '9px 0', borderRadius: 8,
+                  border: '1px solid var(--border)', background: 'transparent',
+                  color: 'var(--muted)', fontSize: 12, cursor: 'pointer',
+                  fontFamily: 'var(--font)'
+                }}>
                   Sign Out
                 </button>
               </div>
             )}
           </div>
         ) : (
-          // ── STATE 1: NOT LOGGED IN ─────────────────────────────────────────
-          <div className="flex flex-col items-center w-full space-y-4">
-            <p className="text-center text-sm text-gray-400">
-              Sign in to track your deep work sessions.
+          // ── NOT LOGGED IN ──
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <p style={{ color: 'var(--muted)', fontSize: 13, textAlign: 'center', margin: 0, lineHeight: 1.6 }}>
+              sign in to start tracking your deep work.
             </p>
-            <button
-              onClick={handleSignIn}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition-colors"
-            >
+            <button onClick={handleSignIn} style={{
+              width: '100%', padding: '11px 0', borderRadius: 8, border: 'none',
+              background: 'var(--accent)', color: '#000', fontSize: 14, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'var(--font)'
+            }}>
               Sign In with Google
             </button>
           </div>
