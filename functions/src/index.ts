@@ -125,10 +125,12 @@ app.post("/analyze", async (c) => {
 
         //takes the values and inserts them into a new const variable
         const { url, userGoal, title } = result.data;
+        const uid = c.get("uid");
+        console.log(`[${uid}] checking: ${url} | goal: "${userGoal}"`);
 
         // C. Construct Prompt 
         const prompt = `
-      You are a productivity guardian.
+      You are a productivity guardian. Be witty in your reason
       User Goal: "${userGoal}"
       Visiting: ${url} (${title || ""})
       
@@ -143,7 +145,7 @@ app.post("/analyze", async (c) => {
             model: "gemini-2.5-flash",
             config: {
                 systemInstruction: {
-                    parts: [{ text: sys_prompt }] //we use parts as its a Multimodal model
+                    parts: [{ text: sys_prompt }] // we use parts as its a Multimodal model
                 },
                 responseMimeType: "application/json" //force json response
             },
@@ -154,11 +156,20 @@ app.post("/analyze", async (c) => {
                 }
             ]
         })
-        //gos through the return and gets the text
-        const text = response.text;
 
-        // return the output in
-        return c.json({ ai_verdict: text });
+
+
+        const text = response.text; // Get the json from the response. Response is a raw Gemini SDK object, not a simple JSON string. It contains tons of internal stuff (metadata, candidates, safety ratings, etc.).
+
+        if (!text) { //check to see if text is null. TS knows if a return statement is type conditional and elimanates code below from assuming that the variable has a type.  
+            return c.json({ error: "AI returned empty response" }, 500);
+        }
+
+        const parsed = JSON.parse(text); // turn the string into a json object '{ "allow": true, "reason": "relevant" }' --> { allow: true, reason: "relevant" }
+        console.log(`[${uid}] verdict: ${parsed.allow ? "ALLOW" : "BLOCK"} — ${parsed.reason}`);
+
+        return c.json(parsed);  // send clean object as HTTP response with proper headers to front end 
+
 
     } catch (err: any) {
         console.error(err);

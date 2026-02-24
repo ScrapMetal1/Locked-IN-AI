@@ -1,4 +1,4 @@
-import { ScanResult } from '../types';
+import type { ScanResult } from '../types';
 import { getIdToken } from './auth';
 
 // url of our deployed cloud function
@@ -33,7 +33,7 @@ export async function analyzeUrl(url: string, title: string, goal: string): Prom
       return { allowed: true, reason: "Backend error, allowing by default." };
     }
 
-    // parse what the ai said — should be { allow: boolean, reason: string }
+    // parse what the ai said — should be { allow: boolean, reason: string } // backend returns a json file
     const verdict = await response.json();
 
     // map it to the ScanResult shape the rest of the app uses
