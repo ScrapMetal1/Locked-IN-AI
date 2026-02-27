@@ -127,21 +127,21 @@ app.post("/analyze", async (c) => {
         const usageSnap = await usageRef.get(); //if we skip the await here the useageSnap becomes a promist object
         const usageData = usageSnap.data(); // snap is wrapped with metadata. extract only the data
 
-                
+
         //get the date
         const today = new Date().toISOString().split("T")[0] //remove the time 
 
         if (!usageData) { //check if user is above limit for the day
-            await usageRef.set({count: 1, date: today});
+            await usageRef.set({ count: 1, date: today });
         }
-        else if (usageData.count >= 100 && usageData.date === today){ //check limit
-            return c.json({error: "Daily limit reached"}, 429);
+        else if (usageData.count >= 200 && usageData.date === today) { //check limit
+            return c.json({ error: "Daily limit reached" }, 429);
         }
-        else if(usageData.date != today){
-            await usageRef.set({count:1, date: today});
+        else if (usageData.date != today) {
+            await usageRef.set({ count: 1, date: today });
         }
         else {
-            await usageRef.update({count: admin.firestore.FieldValue.increment(1)});
+            await usageRef.update({ count: admin.firestore.FieldValue.increment(1) });
         }
 
         //Parse Body -- this grabs the data
@@ -159,17 +159,25 @@ app.post("/analyze", async (c) => {
 
         // C. Construct Prompt 
         const prompt = `
-      You are a productivity guardian. 
       User Goal: "${userGoal}"
       Visiting: ${url} (${title || ""})
       
-      Is this distracting to the users goal? Be generous in your decision. If there is any relation between the goal the website you should allow.
-      If you decide to allow, keep the reason very short. 
-      If you decide to block, be witty in your reason. 
-      Reply JSON: { "allow": boolean, "reason": "string" }
+      Task: Determine if this website is a distraction.
+      
+      Guidelines for assessment:
+      1. Be forgiving: If the website provides tools, reference material, background information, or ANY plausible indirect relation to the goal, ALLOW it.
+      2. Block strict distractions: If the site is clearly unrelated (e.g., entertainment, social media, off-topic news), BLOCK it.
+      3. Think step-by-step: Consider how the site might be used for the goal before determining your final verdict.
+      
+      Reply strictly in this JSON format:
+      {
+        "thinking": "Brief step-by-step reasoning on if/how this site relates to the goal",
+        "allow": boolean,
+        "reason": "Short reason if allowed, witty reason if blocked"
+      }
     `;
 
-        const sys_prompt = "You are a productivity gatekeeper. Classify sites as 'ALLOW' or 'BLOCK' based on the user's current goal."
+        const sys_prompt = "You are a supportive productivity assistant. Allow sites that could plausibly help the user's goal. Block obvious distractions.";
 
         //Call AI
         const response = await ai.models.generateContent({
