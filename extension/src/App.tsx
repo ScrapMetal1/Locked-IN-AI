@@ -62,6 +62,7 @@ function App() {
   };
 
   const handleEndSession = async () => {
+    setGoalDraft_text(session_ui?.currentGoal || ""); //this keeeps the text  ? operator just returns undef instead of crashing the app when reading currentGoal
     await endSession();                             // 1. write isLockedIn: false to chrome.storage
     setSession_ui(await getSession());              // 2. refresh ui from chrome.storage
   };
@@ -130,23 +131,48 @@ function App() {
             ) : (
               // ── NO SESSION ──
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {session_ui?.lastRateLimitedDate === new Date().toDateString() && (
+                  <div style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 8,
+                    background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)',
+                    color: '#fbbf24', fontSize: 13, textAlign: 'center', lineHeight: 1.5,
+                  }}>
+                    <span style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4, fontWeight: 700 }}>
+                      ⚠️ Daily Limit Reached
+                    </span>
+                    <span style={{ opacity: 0.9 }}>You've hit the usage limit. Blocking is paused until tomorrow.</span>
+                  </div>
+                )}
+
                 <input
                   type="text"
                   placeholder="what are you working on?"
                   value={goalDraft_text}
                   onChange={(e) => setGoalDraft_text(e.target.value)}
+                  disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
                     background: 'var(--surface)', border: '1px solid var(--border)',
-                    color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font)',
-                    outline: 'none'
+                    color: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--muted)' : 'var(--text)',
+                    fontSize: 13, fontFamily: 'var(--font)',
+                    outline: 'none',
+                    opacity: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 0.6 : 1,
+                    cursor: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'not-allowed' : 'text'
                   }}
                 />
-                <button onClick={handleLockIn} style={{
-                  width: '100%', padding: '11px 0', borderRadius: 8, border: 'none',
-                  background: 'var(--accent)', color: '#000', fontSize: 14, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'var(--font)'
-                }}>
+                <button
+                  onClick={handleLockIn}
+                  disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}
+                  style={{
+                    width: '100%', padding: '11px 0', borderRadius: 8, border: 'none',
+                    background: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--surface)' : 'var(--accent)',
+                    color: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--muted)' : '#000',
+                    fontSize: 14, fontWeight: 700,
+                    cursor: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'not-allowed' : 'pointer',
+                    fontFamily: 'var(--font)',
+                    opacity: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 0.6 : 1,
+                    transition: 'all 0.2s ease'
+                  }}>
                   🔒 Lock In
                 </button>
                 <button onClick={() => signOut()} style={{

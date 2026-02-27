@@ -4,6 +4,8 @@ import { cors } from "hono/cors";
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
 import * as admin from "firebase-admin";
+import { getFirestore } from 'firebase-admin/firestore';
+
 
 //create the router/web framework
 // Define the custom variables for the Hono context
@@ -34,6 +36,10 @@ const AnalyseSchema = z.object({
 if (!admin.apps.length) { //number of apps running  
     admin.initializeApp();
 }
+
+const db = getFirestore(admin.app(), 'lockedin-userdb');
+
+
 
 // creates a cloud function called api
 // All responses come through here first and then are routed to specific routes
@@ -114,6 +120,30 @@ app.use("*", async (c, next) => { // * means every single route.
 // The Route
 app.post("/analyze", async (c) => {
     try {
+
+        const uid = c.get("uid");
+
+        const usageRef = db.doc(`users/${uid}/usage/daily`);
+        const usageSnap = await usageRef.get(); //if we skip the await here the useageSnap becomes a promist object
+        const usageData = usageSnap.data(); // snap is wrapped with metadata. extract only the data
+
+                
+        //get the date
+        const today = new Date().toISOString().split("T")[0] //remove the time 
+
+        if (!usageData) { //check if user is above limit for the day
+            await usageRef.set({count: 1, date: today});
+        }
+        else if (usageData.count >= 100 && usageData.date === today){ //check limit
+            return c.json({error: "Daily limit reached"}, 429);
+        }
+        else if(usageData.date != today){
+            await usageRef.set({count:1, date: today});
+        }
+        else {
+            await usageRef.update({count: admin.firestore.FieldValue.increment(1)});
+        }
+
         //Parse Body -- this grabs the data
         const body = await c.req.json();
 
@@ -125,16 +155,17 @@ app.post("/analyze", async (c) => {
 
         //takes the values and inserts them into a new const variable
         const { url, userGoal, title } = result.data;
-        const uid = c.get("uid");
         console.log(`[${uid}] checking: ${url} | goal: "${userGoal}"`);
 
         // C. Construct Prompt 
         const prompt = `
-      You are a productivity guardian. Be witty in your reason
+      You are a productivity guardian. 
       User Goal: "${userGoal}"
       Visiting: ${url} (${title || ""})
       
-      Is this distracting to the users goal?
+      Is this distracting to the users goal? Be generous in your decision. If there is any relation between the goal the website you should allow.
+      If you decide to allow, keep the reason very short. 
+      If you decide to block, be witty in your reason. 
       Reply JSON: { "allow": boolean, "reason": "string" }
     `;
 

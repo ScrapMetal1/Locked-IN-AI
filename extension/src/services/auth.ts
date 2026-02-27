@@ -18,7 +18,7 @@ export const db = getFirestore(app, "lockedin-userdb"); // named database
 
 export async function signIn() {
     try {
-        // // clear any cached token so Chrome asks again
+        // // clear any cached token so Chrome asks again . i dont think this works. 
         // const cached = await chrome.identity.getAuthToken({ interactive: false });
         // if (cached.token) {
         //     await chrome.identity.removeCachedAuthToken({ token: cached.token });

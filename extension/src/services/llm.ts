@@ -13,7 +13,7 @@ export async function analyzeUrl(url: string, title: string, goal: string): Prom
     // no token means not logged in — it shouldn't happen but just in case the token expires let them through. 
     if (!token) {
       console.warn("analyzeUrl: user not logged in, allowing by default.");
-      return { allowed: false, reason: "Session expired. Please log in again." };
+      return { allowed: true, reason: "Session expired. Please log in again." };
       //return { allowed: true, reason: "User not logged in." }; 
     }
 
@@ -28,6 +28,10 @@ export async function analyzeUrl(url: string, title: string, goal: string): Prom
     });
 
     // if the backend throws an error, don't take it out on the user — just allow
+    if (response.status === 429) {
+      return {allowed: true, reason: "RATE_LIMITED"};
+    }
+    
     if (!response.ok) {
       console.error("Backend error:", response.status, response.statusText);
       return { allowed: true, reason: "Backend error, allowing by default." };
