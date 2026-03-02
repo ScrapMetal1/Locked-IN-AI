@@ -1,68 +1,276 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface-raised: #181818;
+  --border: #1f1f1f;
+  --accent: #22c55e;
+  --accent-hover: #16a34a;
+  --accent-dim: rgba(34, 197, 94, 0.12);
+  --text: #f0f0f0;
+  --muted: #555555;
+  --font: 'Inter', sans-serif;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 5rem;
+  /* subtle grid pattern for that tech/matte feel from previous app */
+  background-image:
+    linear-gradient(rgba(34, 197, 94, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 197, 94, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
+#root {
+  width: 100%;
+  max-width: 600px;
+  padding: 0 1rem;
+}
+
+/* Typography styles */
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 2rem;
+  letter-spacing: -1px;
+}
+
+h1 .accent {
+  color: var(--accent);
+}
+
+/* Main Container */
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* 3D Floating Component Base */
+.floating-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.8),
+    0 0 1px 1px inset rgba(255, 255, 255, 0.05);
+  /* inner highlight for 3D edge */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Green glow top accent line similar to the blocked.html */
+.floating-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.floating-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px -10px rgba(0, 0, 0, 0.9),
+    0 0 1px 1px inset rgba(255, 255, 255, 0.08);
+  /* Stronger inner edge on hover */
+}
+
+.floating-card:hover::before {
+  opacity: 1;
+}
+
+/* Input Styles */
+.input-container {
+  display: flex;
+  gap: 12px;
+}
+
+input:not([type="checkbox"]) {
+  flex: 1;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:not([type="checkbox"]):focus {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.2),
+    0 0 0 3px var(--accent-dim);
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: #000;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0 24px;
+  border-radius: 12px;
+  border: none;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
+button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+/* Todo List Items */
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.todo-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  /* 3D floating effect for individual items */
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 1px 1px inset rgba(255, 255, 255, 0.03);
+
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: slideIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  a:hover {
-    color: #747bff;
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+.todo-item:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 8px 24px -4px rgba(0, 0, 0, 0.6),
+    0 0 1px 1px inset rgba(255, 255, 255, 0.06);
+  border-color: rgba(34, 197, 94, 0.3);
+  background: linear-gradient(to right, var(--surface), var(--surface-raised));
+}
+
+.todo-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+/* Custom Checkbox */
+.checkbox {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-raised);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.checkbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.todo-text {
+  transition: color 0.2s;
+}
+
+.todo-item.completed .todo-text {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+}
+
+/* Delete button */
+.delete-btn {
+  background: transparent;
+  color: var(--muted);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.delete-btn:active {
+  transform: scale(0.9);
 }

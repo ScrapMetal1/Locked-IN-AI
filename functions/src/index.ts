@@ -155,6 +155,7 @@ app.post("/analyze", async (c) => {
 
         //takes the values and inserts them into a new const variable
         const { url, userGoal, title } = result.data;
+        //debug
         console.log(`[${uid}] checking: ${url} | goal: "${userGoal}"`);
 
         // C. Construct Prompt 
