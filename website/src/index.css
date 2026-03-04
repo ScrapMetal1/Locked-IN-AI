@@ -54,6 +54,10 @@ h1 .accent {
   color: var(--accent);
 }
 
+h1 span {
+  color: #199747;
+}
+
 /* Main Container */
 main {
   display: flex;
@@ -61,8 +65,8 @@ main {
   gap: 2rem;
 }
 
-/* 3D Floating Component Base */
-.floating-card {
+/* 3D Floating Component Base for TodoInput logic */
+main > div {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -77,7 +81,7 @@ main {
 }
 
 /* Green glow top accent line similar to the blocked.html */
-.floating-card::before {
+main > div::before {
   content: '';
   position: absolute;
   top: 0;
@@ -89,7 +93,7 @@ main {
   transition: opacity 0.3s ease;
 }
 
-.floating-card:hover {
+main > div:hover {
   transform: translateY(-4px);
   box-shadow:
     0 20px 40px -10px rgba(0, 0, 0, 0.9),
@@ -97,12 +101,12 @@ main {
   /* Stronger inner edge on hover */
 }
 
-.floating-card:hover::before {
+main > div:hover::before {
   opacity: 1;
 }
 
 /* Input Styles */
-.input-container {
+main > div > div {
   display: flex;
   gap: 12px;
 }
@@ -154,13 +158,13 @@ button:active {
 }
 
 /* Todo List Items */
-.todo-list {
+ul {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.todo-item {
+li {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -190,7 +194,7 @@ button:active {
   }
 }
 
-.todo-item:hover {
+li:hover {
   transform: translateY(-2px) scale(1.01);
   box-shadow:
     0 8px 24px -4px rgba(0, 0, 0, 0.6),
@@ -199,7 +203,7 @@ button:active {
   background: linear-gradient(to right, var(--surface), var(--surface-raised));
 }
 
-.todo-content {
+li > div:first-child {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -244,14 +248,14 @@ button:active {
   transition: color 0.2s;
 }
 
-.todo-item.completed .todo-text {
+li.completed .todo-text {
   color: var(--muted);
   text-decoration: line-through;
   text-decoration-color: var(--muted);
 }
 
 /* Delete button */
-.delete-btn {
+li > div:last-child > button {
   background: transparent;
   color: var(--muted);
   padding: 8px;
@@ -264,13 +268,26 @@ button:active {
   justify-content: center;
 }
 
-.delete-btn:hover {
+li > div:last-child > button:first-child:hover {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+li > div:last-child > button:last-child:hover {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   transform: translateY(0);
   box-shadow: none;
 }
 
-.delete-btn:active {
+li > div:last-child > button:active {
   transform: scale(0.9);
+}
+
+/* Action button container */
+li > div:last-child {
+  display: flex;
+  gap: 8px;
 }

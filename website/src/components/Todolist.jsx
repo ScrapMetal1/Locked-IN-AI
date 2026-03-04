@@ -6,10 +6,10 @@ export default function Todolist(props) {
     const {todos} = props //take the props from the parent class and take the property labelled todos and pull it out on its own standaloe variable.
 
     return (
-        <ul className="todo-list">
-            {todos.map((todo, todoIndex) => {
+        <ul>
+            {todos.map((todo, todoIndex) => { //js function to loop through an array. 
                 return (
-                    <Todocard key={todoIndex}>
+                    <Todocard {...props} key={todoIndex} index={todoIndex}> 
                         <p>{todo}</p>
                     </Todocard>
                 )
