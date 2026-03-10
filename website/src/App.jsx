@@ -11,7 +11,7 @@ function App() {
 
 
   function handleAddTodos(newTodo) { 
-    const newTodoList = [...todos, newTodo] //spread operator
+    const newTodoList = [...todos, newTodo] //spread operator will populate the new array with exisiting
     setTodos(newTodoList)
     persistData(newTodoList)
   }
