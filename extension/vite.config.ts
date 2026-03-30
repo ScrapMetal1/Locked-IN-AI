@@ -6,16 +6,27 @@ import { resolve } from 'path'
 function stripFirebaseRemoteCode() {
   return {
     name: 'strip-firebase-remote-code',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     generateBundle(_options: any, bundle: any) {
       for (const chunk of Object.values(bundle)) {
-        // @ts-ignore
+        // @ts-expect-error type narrowing inside rollup bundle
         if (chunk.type === 'chunk') {
           // Chrome Web Store flags these literal strings as 'remotely hosted code'
-          // @ts-ignore
+          // We replace them with empty strings so that NO remote scripts are attempted to be loaded.
+          // @ts-expect-error type narrowing inside rollup bundle
           chunk.code = chunk.code
-            .replace(/https:\/\/www\.google\.com\/recaptcha\/api\.js/g, "https://dummy.recaptcha/api.js")
-            .replace(/https:\/\/apis\.google\.com\/js\/api\.js/g, "https://dummy.apis.google.com/js/api.js")
-            .replace(/https:\/\/www\.google\.com\/recaptcha\/enterprise\.js\?render=/g, "https://dummy.recaptcha.enterprise/render=");
+            // Replace the real URLs with empty strings
+            .replace(/https:\/\/www\.google\.com\/recaptcha\/api\.js/g, "")
+            .replace(/https:\/\/apis\.google\.com\/js\/api\.js/g, "")
+            .replace(/https:\/\/www\.google\.com\/recaptcha\/enterprise\.js\?render=/g, "")
+            // Also replace the dummy URLs that were previously added
+            .replace(/https:\/\/dummy\.recaptcha\/api\.js/g, "")
+            .replace(/https:\/\/dummy\.apis\.google\.com\/js\/api\.js/g, "")
+            .replace(/https:\/\/dummy\.recaptcha\.enterprise\/render=/g, "")
+            // Specifically disable the creation of `<script>` tags by Firebase Auth's `loadJS`.
+            // The Chrome Web Store reviewer specifically flagged `document.createElement("script")`.
+            // We replace it with "noscript" so no external scripts are fetched or executed.
+            .replace(/document\.createElement\("script"\)/g, 'document.createElement("noscript")');
         }
       }
     }

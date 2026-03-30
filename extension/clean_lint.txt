@@ -1,0 +1,23 @@
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\src\App.tsx:42:Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\src\App.tsx:42:7
+  40 |     } else {
+  41 |       // user just logged out ΓåÆ clear the session from the ui
+> 42 |       setSession_ui(null);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  43 |     }
+  44 |   }, [loggedInUser_ui]);
+  45 |
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\src\App.tsx:53:'err' is defined but never used.
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\src\App.tsx:53:Unexpected any. Specify a different type.
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\src\services\llm.ts:49:Unexpected any. Specify a different type.
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\vite.config.ts:9:Unexpected any. Specify a different type.
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\vite.config.ts:9:Unexpected any. Specify a different type.
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\vite.config.ts:11:Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.
+C:\Users\aaron\GitHub\Personal\Locked IN - AI\extension\vite.config.ts:15:Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free.

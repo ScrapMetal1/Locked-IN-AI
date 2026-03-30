@@ -144,6 +144,10 @@ app.post("/analyze", async (c) => {
             await usageRef.update({ count: admin.firestore.FieldValue.increment(1) });
         }
 
+        // track all-time usage
+        const allTimeRef = db.doc(`users/${uid}/usage/allTime`);
+        await allTimeRef.set({ count: admin.firestore.FieldValue.increment(1) }, { merge: true });
+
         //Parse Body -- this grabs the data
         const body = await c.req.json();
 

@@ -7,6 +7,14 @@ const API_URL = 'https://us-central1-locked-in-ai-487607.cloudfunctions.net/api/
 //background script calls this everytime the tab loads. 
 export async function analyzeUrl(url: string, title: string, goal: string): Promise<ScanResult> {
   try {
+    // 1. Check if we already evaluated this URL for this specific goal
+    const cacheKey = `ai_cache_${goal}_${url}`;
+    const cachedData = await chrome.storage.local.get(cacheKey);
+    if (cachedData[cacheKey]) {
+      console.log(`[Cache Hit] Skipping API for: ${url}`);
+      return cachedData[cacheKey] as ScanResult;
+    }
+
     // grab the user's identity token — this is the key that unlocks our api
     const token = await getIdToken();
 
@@ -40,13 +48,17 @@ export async function analyzeUrl(url: string, title: string, goal: string): Prom
     // parse what the ai said — should be { allow: boolean, reason: string } // backend returns a json file
     const verdict = await response.json();
 
-    // map it to the ScanResult shape the rest of the app uses
-    return {
+    const result = {
       allowed: verdict.allow,
       reason: verdict.reason
     };
 
-  } catch (err: any) {
+    // 2. Save the AI's decision to cache so we don't pay for it again
+    await chrome.storage.local.set({ [cacheKey]: result });
+
+    return result;
+
+  } catch (err) {
     console.error("analyzeUrl failed:", err); // log it so we can debug
     // something broke — don't punish the user for it
     return { allowed: true, reason: "Network error, allowing by default." };

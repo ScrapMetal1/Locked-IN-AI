@@ -39,7 +39,8 @@ function App() {
       getSession().then(setSession_ui);
     } else {
       // user just logged out → clear the session from the ui
-      setSession_ui(null);
+      // using a timeout to avoid synchronous setState inside an effect
+      setTimeout(() => setSession_ui(null), 0);
     }
   }, [loggedInUser_ui]);
 
@@ -50,7 +51,7 @@ function App() {
     setAuthError_ui(null);
     try {
       await signIn(); // firebase opens Google login popup
-    } catch (err: any) {
+    } catch {
       setAuthError_ui("Failed to sign in");
     }
   };
