@@ -1,3 +1,5 @@
+import { GoogleAuthProvider } from 'firebase/auth';
+
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from 'firebase/auth';
@@ -16,6 +18,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 
+
 // Export the Database and Auth so we can use them in App.jsx
 export const db = getFirestore(app, "lockedin-userdb");
 export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
