@@ -51,21 +51,59 @@ function App() {
   }
 
   useEffect(() => {
-    if (!localStorage) {
-      return
-    }
+    const fetchTodos = async () => {
+      if (user) {
+        // ─── LOGGED IN: Read from Firebase ───
+        const userDocRef = doc(db, 'users', user.uid); //doc creates a pointer/address to the userid
+        const docSnap = await getDoc(userDocRef); // gets a snapshot of the folder
+        
+        let dbTodos = [];
+        if (docSnap.exists()) {
+          dbTodos = docSnap.data().todos || []; //reads the data from the snapshot and grabs the todo strings
+        }
 
-    let localTodos = localStorage.getItem('todos')
-    if (!localTodos){
-      return
-    }
-    localTodos = JSON.parse(localTodos).todos
-    setTodos(localTodos)
-      
-  }, [])
+        // Merge stray local storage items if they were using it in offline mode
+        const localTodosStr = localStorage.getItem('todos');
+        if (localTodosStr) {
+          const localTodos = JSON.parse(localTodosStr).todos || [];
+          
+          localTodos.forEach(item => {
+            if (!dbTodos.includes(item)) {
+              dbTodos.push(item);
+            }
+          });
+          
+          // Clear local storage since they are now backed up
+          localStorage.removeItem('todos');
+          // Save the newly merged master list to Firebase
+          await setDoc(userDocRef, { todos: dbTodos }, { merge: true });
+        }
+        
+        setTodos(dbTodos); // render todos onto page
+      } else {
 
-  function persistData(newList) {
-    localStorage.setItem('todos', JSON.stringify({todos: newList}))
+        // ─── LOGGED OUT: Read from Local Storage ───
+        const localTodosStr = localStorage.getItem('todos');
+        if (localTodosStr) {
+          setTodos(JSON.parse(localTodosStr).todos);
+        } else {
+          setTodos([]);
+        }
+      }
+    };
+
+    fetchTodos();
+  }, [user]); // Re-run this entire effect automatically whenever user logs in or out
+
+  async function persistData(newList) {
+    if (user) {
+      // Save to Cloud
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, { todos: newList }, { merge: true });
+    } else {
+      // Save to Browser
+      localStorage.setItem('todos', JSON.stringify({todos: newList}));
+    }
   }
 
 
@@ -76,7 +114,7 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '0 auto 24px auto', maxWidth: '350px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#1E1E1E', borderRadius: '8px', border: '1px solid #333', flex: 1 }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></div>
-            <span style={{ color: '#aaa', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</span>
+            <span style={{ color: '#aaa', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Time to Lock in {user.name}</span>
           </div>
           <button 
             onClick={() => signOut(auth)}
