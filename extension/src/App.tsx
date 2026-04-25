@@ -14,11 +14,13 @@ import { startSession, getSession, endSession } from './services/storage';
 function App() {
 
   // --- React UI State (in-memory, popup only) ---
-  const [loggedInUser_ui, setLoggedInUser_ui] = useState<User | null>(null);
+  const [loggedInUser_ui, setLoggedInUser_ui] = useState<User | null>(null); // User or null type allowed, initial default to null. 
   const [isLoading_ui, setIsLoading_ui] = useState(true);
   const [authError_ui, setAuthError_ui] = useState<string | null>(null);
   const [session_ui, setSession_ui] = useState<UserState | null>(null); // mirrors what's in chrome.storage for the UI
   const [goalDraft_text, setGoalDraft_text] = useState(""); // what the user is currently typing
+  const [duration_min, setDuration_min] = useState(25); 
+  const [timeLeft_ui, setTimeLeft_ui] = useState<string | null>(null);
 
 
   // --- Effect 1: Watch Firebase for login/logout ---
@@ -44,6 +46,32 @@ function App() {
     }
   }, [loggedInUser_ui]);
 
+  useEffect(() => {
+    if (!session_ui?.isLockedIn || !session_ui?.sessionEndTime) {
+      setTimeLeft_ui(null);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const difference = session_ui.sessionEndTime! - now;
+      
+     if (difference <= 0){
+
+      setTimeLeft_ui("00:00");
+      clearInterval(interval);
+      endSession().then(() => getSession().then(setSession_ui));
+     
+    } else {
+
+      const m = Math.floor((difference / 1000 / 60) % 60);
+      const s = Math.floor((difference / 1000) % 60);
+        setTimeLeft_ui(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+    }, [session_ui])
+
 
   // --- Handlers ---
 
@@ -58,7 +86,7 @@ function App() {
 
   const handleLockIn = async () => {
     if (!goalDraft_text.trim()) return; // don't allow empty goal
-    await startSession(goalDraft_text);            // 1. save to chrome.storage (persistent)
+    await startSession(goalDraft_text, duration_min);            // 1. save to chrome.storage (persistent)
     setSession_ui(await getSession());              // 2. refresh ui from chrome.storage
   };
 
@@ -121,6 +149,21 @@ function App() {
                   </span>
                   <span style={{ color: 'var(--text)', fontWeight: 500 }}>{session_ui.currentGoal}</span>
                 </div>
+                {/* Timer Display */}
+                {timeLeft_ui && (
+                  <div style={{
+                    textAlign: 'center',
+                    fontSize: 32,
+                    fontWeight: 800,
+                    letterSpacing: 2,
+                    color: timeLeft_ui === "00:00" ? '#f87171' : 'var(--accent)',
+                    fontFamily: 'var(--font)',
+                    marginTop: 4
+                  }}>
+                    {timeLeft_ui}
+                  </div>
+                )}
+                 {/* end session button */}
                 <button onClick={handleEndSession} style={{
                   width: '100%', padding: '10px 0', borderRadius: 8, border: '1px solid var(--border)',
                   background: 'var(--surface)', color: '#f87171', fontSize: 13, fontWeight: 600,
@@ -147,7 +190,7 @@ function App() {
 
                 <input
                   type="text"
-                  placeholder="what are you working on?"
+                  placeholder="What are you working on?"
                   value={goalDraft_text}
                   onChange={(e) => setGoalDraft_text(e.target.value)}
                   disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}
@@ -161,6 +204,32 @@ function App() {
                     cursor: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'not-allowed' : 'text'
                   }}
                 />
+                                {/* Duration Picker */}
+                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                  {[25, 45, 60].map(min => (
+                    <button
+                      key={min}
+                      onClick={() => setDuration_min(min)}
+                      style={{
+                        flex: 1,
+                        padding: '8px 0',
+                        borderRadius: 8,
+                        border: `1px solid ${duration_min === min ? 'var(--accent)' : 'var(--border)'}`,
+                        background: duration_min === min ? 'var(--accent-dim)' : 'var(--surface)',
+                        color: duration_min === min ? 'var(--accent)' : 'var(--muted)',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {min}m
+                    </button>
+                  ))}
+                </div>
+
+                
                 <button
                   onClick={handleLockIn}
                   disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}

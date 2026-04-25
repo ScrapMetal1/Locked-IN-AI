@@ -134,7 +134,7 @@ app.post("/analyze", async (c) => {
         if (!usageData) { //check if user is above limit for the day
             await usageRef.set({ count: 1, date: today });
         }
-        else if (usageData.count >= 200 && usageData.date === today) { //check limit
+        else if (usageData.count >= 1000 && usageData.date === today) {          //  check limit
             return c.json({ error: "Daily limit reached" }, 429);
         }
         else if (usageData.date != today) {

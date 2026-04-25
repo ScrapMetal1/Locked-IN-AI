@@ -1,14 +1,15 @@
 import type { UserState } from "../types";
 
 // starts a focus session — saves goal + isLockedIn: true to chrome's built-in db
-export async function startSession(goal: string): Promise<void> {
+export async function startSession(goal: string, durationMinutes: number): Promise<void> {
     const prevState = await getSession();
 
     const session: UserState = {
         isLockedIn: true,
         currentGoal: goal,
         blockedCount: 0,
-        lastRateLimitedDate: prevState.lastRateLimitedDate
+        lastRateLimitedDate: prevState.lastRateLimitedDate,
+        sessionEndTime: Date.now() + (durationMinutes * 60 * 1000)
     };
 
     await chrome.storage.local.set({

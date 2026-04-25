@@ -4,6 +4,28 @@ import { getSession, endSession } from '../services/storage';
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
 
+chrome.alarms.create("pomodoro-check", {periodInMinutes: 0.1}); //checks every 6 secs
+
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name !== "pomodoro-check") return;
+
+    const state = await getSession();
+    if (!state.isLockedIn || !state.sessionEndTime) return;
+
+    if (Date.now() >= state.sessionEndTime) {
+        await endSession();
+
+        chrome.notifications.create("pomodoro-done", {
+            type: "basic",
+            iconUrl: "icon128.png",
+            title: "Session Complete 🎉",
+            message: "Your focus session has ended. Great work!"
+        });
+    }
+});
+
+
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     // only care when the page has fully loaded and has a real url
