@@ -12,6 +12,8 @@ function App() {
   const [todos, setTodos] = useState([])
   const[todoValue, setTodoValue] = useState("")
   const [user, setUser] = useState(null);
+  const [todoTime, setTodoTime] = useState(25);
+
 
 
   useEffect(() =>  {
@@ -108,84 +110,113 @@ function App() {
 
 
   return (
-    <main>
-      <h1>Locked <span>IN</span></h1>
-      {user ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '0 auto 24px auto', maxWidth: '350px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#1E1E1E', borderRadius: '8px', border: '1px solid #333', flex: 1 }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></div>
-            <span style={{ color: '#aaa', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Time to Lock in {user.displayName || 'User'}</span>
-          </div>
-          <button 
-            onClick={() => signOut(auth)}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: 'transparent',
-              color: '#ef4444',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      ) : (
-        <button 
-          onClick={handleLogin}
+    <div style={{ position: 'relative' }}>
+      {/* ── Sign Out: Top Right Corner ── */}
+      {user && (
+        <button
+          onClick={() => signOut(auth)}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            width: '100%',
-            maxWidth: '350px',
-            margin: '0 auto 24px auto',
-            padding: '12px 24px',
-            backgroundColor: '#1E1E1E',
-            color: '#FFFFFF',
-            border: '1px solid #333',
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            padding: '8px 16px',
+            backgroundColor: 'transparent',
+            color: '#555',
+            border: '1px solid #2a2a2a',
             borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: '600',
+            fontSize: '13px',
+            fontWeight: '500',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+            fontFamily: 'var(--font)',
+            boxShadow: 'none',
+            zIndex: 10,
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = '#2A2A2A';
+            e.currentTarget.style.color = '#aaa';
             e.currentTarget.style.borderColor = '#444';
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = '#1E1E1E';
-            e.currentTarget.style.borderColor = '#333';
+            e.currentTarget.style.color = '#555';
+            e.currentTarget.style.borderColor = '#2a2a2a';
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
+          Sign Out
         </button>
       )}
-      <div>
-        <TodoInput todoValue = {todoValue} setTodoValue={setTodoValue} handleAddTodos={handleAddTodos} />
-      </div>
-      <TodoList handleEdit={handleEdit} todoValue = {todoValue} setTodoValue={setTodoValue} handleDelete = {handleDelete} todos={todos} />
-    </main>
+
+      <main>
+        {/* ── Hero Title ── */}
+        <h1 style={{ textShadow: '0 0 60px rgba(34, 197, 94, 0.15)' }}>
+          Locked <span>IN</span>
+        </h1>
+
+        {/* ── Subtitle / Sign In ── */}
+        {user ? (
+          <p style={{
+            textAlign: 'center',
+            color: '#444',
+            fontSize: '15px',
+            fontWeight: '500',
+            letterSpacing: '0.5px',
+            marginTop: '-16px',
+            marginBottom: '8px',
+          }}>
+            Time to lock in, <span style={{ color: '#22c55e' }}>{user.displayName || 'User'}</span>
+          </p>
+        ) : (
+          <button
+            onClick={handleLogin}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              width: '100%',
+              maxWidth: '380px',
+              margin: '0 auto',
+              padding: '14px 28px',
+              backgroundColor: '#141414',
+              color: '#ddd',
+              border: '1px solid #2a2a2a',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontFamily: 'var(--font)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#1a1a1a';
+              e.currentTarget.style.borderColor = '#333';
+              e.currentTarget.style.color = '#fff';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#141414';
+              e.currentTarget.style.borderColor = '#2a2a2a';
+              e.currentTarget.style.color = '#ddd';
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Continue with Google
+          </button>
+        )}
+
+        {/* ── Todo Input ── */}
+        <div>
+          <TodoInput todoTime={todoTime} setTodoTime={setTodoTime} todoValue={todoValue} setTodoValue={setTodoValue} handleAddTodos={handleAddTodos} />
+        </div>
+
+        {/* ── Todo List ── */}
+        <TodoList handleEdit={handleEdit} todoValue={todoValue} setTodoValue={setTodoValue} handleDelete={handleDelete} todos={todos} />
+      </main>
+    </div>
   )
 }
 
