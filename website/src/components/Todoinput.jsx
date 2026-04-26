@@ -71,7 +71,7 @@ export default function TodoInput(props) {
             <button 
                 onClick={() => {
                     if (!todoValue.trim()) return; // Don't allow empty tasks
-                    handleAddTodos({ title: todoValue, duration: todoTime });
+                    handleAddTodos({ id: Date.now(), title: todoValue, duration: todoTime, completed: false });
                     setTodoValue("");
                 }}
                 style={{

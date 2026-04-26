@@ -290,4 +290,58 @@ li > div:last-child > button:active {
 li > div:last-child {
   display: flex;
   gap: 8px;
+  margin-left: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Completion Animation ── */
+@keyframes completeFlash {
+  0% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 1px 1px inset rgba(255, 255, 255, 0.03);
+  }
+  40% {
+    box-shadow: 0 0 24px rgba(34, 197, 94, 0.25), 0 0 1px 1px inset rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 1px 1px inset rgba(255, 255, 255, 0.03);
+  }
+}
+
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.4); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes strikeReveal {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+li.completing {
+  animation: completeFlash 0.5s ease-out;
+}
+
+li.completing > div:first-child > button:first-child {
+  animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Animated strikethrough line */
+.todo-title {
+  position: relative;
+  display: inline-block;
+}
+
+.todo-title.struck::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1.5px;
+  background: #555;
+  transform-origin: left;
+  animation: strikeReveal 0.4s ease-out forwards;
 }

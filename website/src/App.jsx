@@ -13,6 +13,8 @@ function App() {
   const[todoValue, setTodoValue] = useState("")
   const [user, setUser] = useState(null);
   const [todoTime, setTodoTime] = useState(25);
+  const [showCompleted, setShowCompleted] = useState(false);
+
 
 
 
@@ -38,19 +40,31 @@ function App() {
     persistData(newTodoList)
   }
 
-  function handleDelete(index){
-    const newTodoList = todos.filter(( todo, todoIndex) => { //.filter js method --> creates a new array. 
-      return todoIndex !== index
+  function handleDelete(id) {
+    const newTodoList = todos.filter(todo => todo.id !== id)
+    setTodos(newTodoList)
+    persistData(newTodoList)
+  }
+
+  function handleEdit(id) {
+    const todoToEdit = todos.find(todo => todo.id === id)
+    if (todoToEdit) {
+      setTodoValue(todoToEdit.title)
+      handleDelete(id)
+    }
+  }
+
+  function handleToggleComplete(id) {
+    const newTodoList = todos.map(todo => {
+      if (todo.id === id) {
+        return { ...todo, completed: !todo.completed }
+      }
+      return todo
     })
     setTodos(newTodoList)
     persistData(newTodoList)
   }
 
-  function handleEdit(index){
-    const valueToBeEdited = todos[index]
-    setTodoValue(valueToBeEdited)
-    handleDelete(index)
-  }
 
   useEffect(() => {
     const fetchTodos = async () => {
@@ -214,7 +228,79 @@ function App() {
         </div>
 
         {/* ── Todo List ── */}
-        <TodoList handleEdit={handleEdit} todoValue={todoValue} setTodoValue={setTodoValue} handleDelete={handleDelete} todos={todos} />
+        {/* ── Active Tasks ── */}
+        <TodoList 
+            handleEdit={handleEdit} 
+            handleDelete={handleDelete} 
+            handleToggleComplete={handleToggleComplete}
+            todos={todos.filter(t => !t.completed)} 
+        />
+
+        {/* ── Completed Tasks (Collapsible) ── */}
+        {todos.filter(t => t.completed).length > 0 && (
+            <div style={{ marginTop: '8px' }}>
+                {/* Divider with toggle */}
+                <button 
+                    onClick={() => setShowCompleted(!showCompleted)}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        width: '100%',
+                        padding: '8px 0',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        boxShadow: 'none',
+                        color: '#444',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        letterSpacing: '1px',
+                        textTransform: 'uppercase',
+                        fontFamily: 'var(--font)',
+                        transition: 'color 0.2s ease',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.color = '#666'}
+                    onMouseOut={(e) => e.currentTarget.style.color = '#444'}
+                >
+                    {/* Left line */}
+                    <div style={{ flex: 1, height: '1px', background: '#222' }}></div>
+                    
+                    {/* Chevron + Text */}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+                        <svg 
+                            width="12" height="12" viewBox="0 0 24 24" fill="none" 
+                            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                            style={{ 
+                                transition: 'transform 0.3s ease',
+                                transform: showCompleted ? 'rotate(180deg)' : 'rotate(0deg)'
+                            }}
+                        >
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                        Completed · {todos.filter(t => t.completed).length}
+                    </span>
+                    
+                    {/* Right line */}
+                    <div style={{ flex: 1, height: '1px', background: '#222' }}></div>
+                </button>
+                
+                {/* Collapsible list */}
+                <div style={{
+                    maxHeight: showCompleted ? '1000px' : '0px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.4s ease',
+                    opacity: showCompleted ? 1 : 0,
+                }}>
+                    <TodoList 
+                        handleEdit={handleEdit} 
+                        handleDelete={handleDelete} 
+                        handleToggleComplete={handleToggleComplete}
+                        todos={todos.filter(t => t.completed)} 
+                    />
+                </div>
+            </div>
+        )}
       </main>
     </div>
   )

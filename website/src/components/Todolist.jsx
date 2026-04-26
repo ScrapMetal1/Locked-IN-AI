@@ -3,15 +3,13 @@ import Todocard from './Todocard'
 
 export default function Todolist(props) {
     
-    const {todos} = props //take the props from the parent class and take the property labelled todos and pull it out on its own standaloe variable.
+    const { todos } = props
 
     return (
         <ul>
-            {todos.map((todo, todoIndex) => { //js function to loop through an array. 
+            {todos.map((todo) => {
                 return (
-                    <Todocard {...props} key={todoIndex} index={todoIndex}> 
-                        <p>{todo}</p>
-                    </Todocard>
+                    <Todocard {...props} key={todo.id} todoId={todo.id} todo={todo} />
                 )
             })}
         </ul>
