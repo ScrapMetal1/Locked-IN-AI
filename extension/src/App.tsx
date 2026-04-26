@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { UserState } from "./types";
+import type { UserState, Todo } from "./types";
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { signIn, signOut, auth } from './services/auth';
+import { signIn, signOut, auth, db } from './services/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import './index.css';
 import { startSession, getSession, endSession } from './services/storage';
 
@@ -21,7 +22,7 @@ function App() {
   const [goalDraft_text, setGoalDraft_text] = useState(""); // what the user is currently typing
   const [duration_min, setDuration_min] = useState(25); 
   const [timeLeft_ui, setTimeLeft_ui] = useState<string | null>(null);
-
+  const [todos_ui, setTodos_ui] = useState<Todo[]>([]); 
 
   // --- Effect 1: Watch Firebase for login/logout ---
   // runs once on mount. firebase tells us when the user logs in or out.
@@ -46,6 +47,21 @@ function App() {
     }
   }, [loggedInUser_ui]);
 
+  useEffect(() => {
+      if (loggedInUser_ui) {
+          const fetchTodos = async () => {
+            const userDocRef = doc(db, 'users', loggedInUser_ui.uid);
+            const docSnap = await getDoc(userDocRef);
+            const allTodos = docSnap.data()?.todos || [];
+            setTodos_ui(allTodos.filter((t: Todo) => !t.completed));
+          }
+          fetchTodos();
+        } else {
+          setTodos_ui([]);
+        }
+  }, [loggedInUser_ui]);
+  
+  
   useEffect(() => {
     if (!session_ui?.isLockedIn || !session_ui?.sessionEndTime) {
       setTimeLeft_ui(null);
@@ -194,9 +210,9 @@ function App() {
                 </button>
               </div>
             ) : (
-              // ── NO SESSION ──
+              // ── NO SESSION ─----
               <div className="glass-panel" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, padding: 20 }}>
-                {session_ui?.lastRateLimitedDate === new Date().toDateString() && (
+                {session_ui?.lastRateLimitedDate === new Date().toDateString() && ( // only render if this condition is true
                   <div style={{
                     width: '100%', padding: '12px 14px', borderRadius: 10,
                     background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)',
@@ -261,6 +277,40 @@ function App() {
                       {min}m
                     </button>
                   ))}
+                  {/* Custom Time Input */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '10px 10px',
+                    borderRadius: 10,
+                    border: `1px solid ${![25, 45, 60].includes(duration_min) ? 'var(--accent)' : 'var(--border)'}`,
+                    background: ![25, 45, 60].includes(duration_min) ? 'var(--accent-dim)' : 'rgba(0,0,0,0.4)',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    <input 
+                      type="number"
+                      value={duration_min || ''}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        setDuration_min(isNaN(val) || val < 0 ? 0 : val);
+                      }}
+                      onFocus={(e) => e.target.select()}
+                      style={{
+                        width: 36,
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'var(--accent)',
+                        fontSize: 14,
+                        fontWeight: 700,
+                        textAlign: 'center' as const,
+                        outline: 'none',
+                        padding: 0,
+                        fontFamily: 'var(--font)',
+                      }}
+                    />
+                    <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 600 }}>m</span>
+                  </div>
                 </div>
 
                 <button
@@ -278,7 +328,74 @@ function App() {
                   }}>
                   🔒 Lock In
                 </button>
+
+                {/* ── One-Tap Launch Cards ── */}
                 
+                {todos_ui.length > 0 && (
+                  <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <span style={{ 
+                      fontSize: 11, 
+                      textTransform: 'uppercase' as const, 
+                      letterSpacing: 1.5, 
+                      color: 'var(--muted)', 
+                      fontWeight: 600,
+                      marginBottom: 2
+                    }}>
+                      Your Tasks
+                    </span>
+                    {todos_ui.map((todo) => (
+                      <button
+                        key={todo.id}
+                        className="btn-hover"
+                        onClick={() => {
+                          setGoalDraft_text(todo.title);
+                          setDuration_min(todo.duration);
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 14px',
+                          borderRadius: 10,
+                          border: '1px solid var(--border)',
+                          background: 'rgba(0,0,0,0.3)',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--font)',
+                          transition: 'all 0.2s ease',
+                          textAlign: 'left' as const,
+                        }}
+                      >
+                        <span style={{ 
+                          color: 'var(--text)', 
+                          fontSize: 13, 
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap' as const,
+                          marginRight: 10,
+                        }}>
+                          {todo.title}
+                        </span>
+                        <span style={{
+                          flexShrink: 0,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: 'var(--accent)',
+                          background: 'var(--accent-dim)',
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          letterSpacing: 0.5,
+                        }}>
+                          {todo.duration}m
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+
+
                 <div style={{ width: '100%', height: 1, background: 'var(--border)', margin: '4px 0' }}></div>
                 
                 <button onClick={() => signOut()} style={{

@@ -10,3 +10,10 @@ export interface ScanResult {
     allowed: boolean;
     reason: string;
 }
+
+export interface Todo {
+    id: number;
+    title: string;
+    duration: number;
+    completed: boolean;
+}
