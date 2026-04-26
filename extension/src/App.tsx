@@ -134,6 +134,44 @@ function App() {
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
+      
+      {/* ── Home Button (Top Right) ── */}
+      <button 
+        onClick={() => chrome.tabs.create({ url: 'https://lockedin.eliascorp.org' })}
+        style={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          zIndex: 10,
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          border: '1px solid var(--border)',
+          background: 'rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+          boxShadow: 'none',
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+          e.currentTarget.style.boxShadow = '0 0 12px rgba(34, 197, 94, 0.15)';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.borderColor = 'var(--border)';
+          e.currentTarget.style.boxShadow = 'none';
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+
+      
+
       <div style={{ width: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
 
         {/* header */}
