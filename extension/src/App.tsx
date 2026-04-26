@@ -52,25 +52,34 @@ function App() {
       return;
     }
 
-    const interval = setInterval(() => {
+    const updateTimer = () => {
       const now = Date.now();
       const difference = session_ui.sessionEndTime! - now;
       
-     if (difference <= 0){
-
-      setTimeLeft_ui("00:00");
-      clearInterval(interval);
-      endSession().then(() => getSession().then(setSession_ui));
-     
-    } else {
-
-      const m = Math.floor((difference / 1000 / 60) % 60);
-      const s = Math.floor((difference / 1000) % 60);
+      if (difference <= 0) {
+        setTimeLeft_ui("00:00");
+        endSession().then(() => getSession().then(setSession_ui));
+        return true; // signal to clear interval
+      } else {
+        const m = Math.floor((difference / 1000 / 60) % 60);
+        const s = Math.floor((difference / 1000) % 60);
         setTimeLeft_ui(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+        return false;
+      }
+    };
+
+    // Call immediately to avoid 1-second buffer delay
+    const shouldStop = updateTimer();
+    if (shouldStop) return;
+
+    const interval = setInterval(() => {
+      if (updateTimer()) {
+        clearInterval(interval);
       }
     }, 1000);
+    
     return () => clearInterval(interval);
-    }, [session_ui])
+  }, [session_ui]);
 
 
   // --- Handlers ---
@@ -108,120 +117,145 @@ function App() {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
-      <div style={{ width: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+    <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
+      <div style={{ width: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
 
         {/* header */}
         <div style={{ textAlign: 'center' }}>
-          <span style={{ fontSize: 40, display: 'block', marginBottom: 8, filter: 'drop-shadow(0 0 16px rgba(34,197,94,0.5))' }}>🔒</span>
-          <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: -1, color: 'var(--text)', margin: 0 }}>
-            Locked <span style={{ color: 'var(--accent)' }}>In</span>
+          <span style={{ fontSize: 44, display: 'block', marginBottom: 12, filter: 'drop-shadow(0 0 20px var(--accent-glow))', animation: 'fadeIn 0.6s ease-out' }}>🔒</span>
+          <h1 style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1, color: 'var(--text)', margin: 0 }}>
+            Locked <span style={{ 
+              background: 'var(--gradient-accent)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 8px rgba(34, 197, 94, 0.4))'
+            }}>In</span>
           </h1>
         </div>
 
         {/* error banner */}
         {authError_ui && (
-          <div style={{
-            width: '100%', padding: '10px 14px', borderRadius: 8,
-            background: 'rgba(220, 38, 38, 0.12)', border: '1px solid rgba(220, 38, 38, 0.3)',
-            color: '#f87171', fontSize: 12
+          <div className="glass-panel" style={{
+            width: '100%', padding: '12px 16px',
+            background: 'rgba(220, 38, 38, 0.1)', border: '1px solid rgba(220, 38, 38, 0.3)',
+            color: '#f87171', fontSize: 13, textAlign: 'center'
           }}>
             {authError_ui}
           </div>
         )}
 
         {loggedInUser_ui ? (
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
-              Welcome, <span style={{ color: 'var(--text)', fontWeight: 500 }}>{loggedInUser_ui.displayName || loggedInUser_ui.email}</span>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+            <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0, fontWeight: 400 }}>
+              Welcome, <span style={{ color: 'var(--text)', fontWeight: 600 }}>{loggedInUser_ui.displayName || loggedInUser_ui.email}</span>
             </p>
 
             {session_ui?.isLockedIn ? (
               // ── SESSION ACTIVE ──
-              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="glass-panel" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, padding: 20, background: 'var(--surface)' }}>
                 <div style={{
-                  width: '100%', padding: '14px 16px', borderRadius: 10,
+                  width: '100%', padding: '16px', borderRadius: 12,
                   background: 'var(--accent-dim)', border: '1px solid rgba(34, 197, 94, 0.2)',
-                  fontSize: 13, lineHeight: 1.6
+                  fontSize: 14, lineHeight: 1.6, textAlign: 'center'
                 }}>
-                  <span style={{ display: 'block', fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: 1, color: 'var(--accent)', marginBottom: 6, fontWeight: 600 }}>
-                    🟢 session active
-                  </span>
-                  <span style={{ color: 'var(--text)', fontWeight: 500 }}>{session_ui.currentGoal}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)' }}></div>
+                    <span style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.5, color: 'var(--accent)', fontWeight: 700 }}>
+                      Session Active
+                    </span>
+                  </div>
+                  <span style={{ color: 'var(--text)', fontWeight: 500, display: 'block' }}>{session_ui.currentGoal}</span>
                 </div>
                 {/* Timer Display */}
                 {timeLeft_ui && (
                   <div style={{
                     textAlign: 'center',
-                    fontSize: 32,
+                    fontSize: 48,
                     fontWeight: 800,
                     letterSpacing: 2,
-                    color: timeLeft_ui === "00:00" ? '#f87171' : 'var(--accent)',
+                    color: timeLeft_ui === "00:00" ? '#f87171' : '#ffffff',
                     fontFamily: 'var(--font)',
-                    marginTop: 4
+                    marginTop: 4,
+                    textShadow: '0 4px 24px rgba(0,0,0,0.5)',
+                    background: timeLeft_ui === "00:00" ? '#f87171' : 'var(--gradient-accent)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
                   }}>
                     {timeLeft_ui}
                   </div>
                 )}
                  {/* end session button */}
-                <button onClick={handleEndSession} style={{
-                  width: '100%', padding: '10px 0', borderRadius: 8, border: '1px solid var(--border)',
-                  background: 'var(--surface)', color: '#f87171', fontSize: 13, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'var(--font)'
+                <button className="btn-hover" onClick={handleEndSession} style={{
+                  width: '100%', padding: '12px 0', borderRadius: 10, border: '1px solid rgba(248, 113, 113, 0.3)',
+                  background: 'rgba(248, 113, 113, 0.1)', color: '#f87171', fontSize: 14, fontWeight: 600,
+                  cursor: 'pointer', fontFamily: 'var(--font)', marginTop: 4
                 }}>
                   End Session
                 </button>
               </div>
             ) : (
               // ── NO SESSION ──
-              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="glass-panel" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, padding: 20 }}>
                 {session_ui?.lastRateLimitedDate === new Date().toDateString() && (
                   <div style={{
-                    width: '100%', padding: '12px 14px', borderRadius: 8,
+                    width: '100%', padding: '12px 14px', borderRadius: 10,
                     background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.25)',
                     color: '#fbbf24', fontSize: 13, textAlign: 'center', lineHeight: 1.5,
                   }}>
-                    <span style={{ display: 'block', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4, fontWeight: 700 }}>
+                    <span style={{ display: 'block', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4, fontWeight: 700 }}>
                       ⚠️ Daily Limit Reached
                     </span>
-                    <span style={{ opacity: 0.9 }}>You've hit the usage limit. Blocking is paused until tomorrow.</span>
+                    <span style={{ opacity: 0.9 }}>Blocking is paused until tomorrow.</span>
                   </div>
                 )}
 
-                <input
-                  type="text"
-                  placeholder="What are you working on?"
-                  value={goalDraft_text}
-                  onChange={(e) => setGoalDraft_text(e.target.value)}
-                  disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}
-                  style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 8,
-                    background: 'var(--surface)', border: '1px solid var(--border)',
-                    color: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--muted)' : 'var(--text)',
-                    fontSize: 13, fontFamily: 'var(--font)',
-                    outline: 'none',
-                    opacity: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 0.6 : 1,
-                    cursor: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'not-allowed' : 'text'
-                  }}
-                />
-                                {/* Duration Picker */}
-                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="What are you working on?"
+                    value={goalDraft_text}
+                    onChange={(e) => setGoalDraft_text(e.target.value)}
+                    disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}
+                    style={{
+                      width: '100%', padding: '14px 16px', borderRadius: 12,
+                      background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border)',
+                      color: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--muted)' : 'var(--text)',
+                      fontSize: 14, fontFamily: 'var(--font)',
+                      outline: 'none',
+                      opacity: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 0.6 : 1,
+                      cursor: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'not-allowed' : 'text',
+                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--accent)';
+                      e.target.style.boxShadow = '0 0 0 2px var(--accent-dim)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'var(--border)';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                </div>
+                
+                {/* Duration Picker */}
+                <div style={{ display: 'flex', gap: 10, width: '100%' }}>
                   {[25, 45, 60].map(min => (
                     <button
                       key={min}
                       onClick={() => setDuration_min(min)}
                       style={{
                         flex: 1,
-                        padding: '8px 0',
-                        borderRadius: 8,
+                        padding: '10px 0',
+                        borderRadius: 10,
                         border: `1px solid ${duration_min === min ? 'var(--accent)' : 'var(--border)'}`,
-                        background: duration_min === min ? 'var(--accent-dim)' : 'var(--surface)',
+                        background: duration_min === min ? 'var(--accent-dim)' : 'rgba(0,0,0,0.4)',
                         color: duration_min === min ? 'var(--accent)' : 'var(--muted)',
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: 600,
                         cursor: 'pointer',
                         fontFamily: 'var(--font)',
-                        transition: 'all 0.15s ease'
+                        transition: 'all 0.2s ease',
+                        boxShadow: duration_min === min ? '0 0 12px var(--accent-glow)' : 'none'
                       }}
                     >
                       {min}m
@@ -229,28 +263,34 @@ function App() {
                   ))}
                 </div>
 
-                
                 <button
+                  className={session_ui?.lastRateLimitedDate !== new Date().toDateString() ? "btn-hover" : ""}
                   onClick={handleLockIn}
                   disabled={session_ui?.lastRateLimitedDate === new Date().toDateString()}
                   style={{
-                    width: '100%', padding: '11px 0', borderRadius: 8, border: 'none',
-                    background: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--surface)' : 'var(--accent)',
+                    width: '100%', padding: '14px 0', borderRadius: 12, border: 'none',
+                    background: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--border)' : 'var(--gradient-accent)',
                     color: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'var(--muted)' : '#000',
-                    fontSize: 14, fontWeight: 700,
+                    fontSize: 15, fontWeight: 700, letterSpacing: 0.5,
                     cursor: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 'not-allowed' : 'pointer',
                     fontFamily: 'var(--font)',
                     opacity: session_ui?.lastRateLimitedDate === new Date().toDateString() ? 0.6 : 1,
-                    transition: 'all 0.2s ease'
                   }}>
                   🔒 Lock In
                 </button>
+                
+                <div style={{ width: '100%', height: 1, background: 'var(--border)', margin: '4px 0' }}></div>
+                
                 <button onClick={() => signOut()} style={{
-                  width: '100%', padding: '9px 0', borderRadius: 8,
-                  border: '1px solid var(--border)', background: 'transparent',
-                  color: 'var(--muted)', fontSize: 12, cursor: 'pointer',
-                  fontFamily: 'var(--font)'
-                }}>
+                  width: '100%', padding: '8px 0', borderRadius: 8,
+                  border: 'none', background: 'transparent',
+                  color: 'var(--muted)', fontSize: 13, cursor: 'pointer',
+                  fontFamily: 'var(--font)', fontWeight: 500,
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.color = '#fff'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--muted)'}
+                >
                   Sign Out
                 </button>
               </div>
@@ -258,14 +298,14 @@ function App() {
           </div>
         ) : (
           // ── NOT LOGGED IN ──
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <p style={{ color: 'var(--muted)', fontSize: 13, textAlign: 'center', margin: 0, lineHeight: 1.6 }}>
-              sign in to start tracking your deep work.
+          <div className="glass-panel" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: 24 }}>
+            <p style={{ color: 'var(--muted)', fontSize: 14, textAlign: 'center', margin: 0, lineHeight: 1.6, fontWeight: 400 }}>
+              Sign in to start tracking your deep work and lock in your goals.
             </p>
-            <button onClick={handleSignIn} style={{
-              width: '100%', padding: '11px 0', borderRadius: 8, border: 'none',
-              background: 'var(--accent)', color: '#000', fontSize: 14, fontWeight: 700,
-              cursor: 'pointer', fontFamily: 'var(--font)'
+            <button className="btn-hover" onClick={handleSignIn} style={{
+              width: '100%', padding: '14px 0', borderRadius: 12, border: 'none',
+              background: 'var(--gradient-accent)', color: '#000', fontSize: 15, fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'var(--font)', letterSpacing: 0.5
             }}>
               Sign In with Google
             </button>
