@@ -22,7 +22,7 @@ export default function TodoInput(props) {
         <input 
             value={todoValue} 
             onChange={(e) => setTodoValue(e.target.value)} 
-            placeholder="What is important user?" 
+            placeholder="What's the priority user?" 
             style={{ 
                 flex: 1, 
                 backgroundColor: 'transparent', 

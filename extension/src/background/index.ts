@@ -14,7 +14,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (!state.isLockedIn || !state.sessionEndTime) return;
 
     if (Date.now() >= state.sessionEndTime) {
-        await endSession();
+        await endSession(false, true);
 
         chrome.notifications.create("pomodoro-done", {
             type: "basic",

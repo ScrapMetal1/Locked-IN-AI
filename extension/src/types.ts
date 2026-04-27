@@ -4,6 +4,8 @@ export interface UserState {
     blockedCount: number;
     lastRateLimitedDate?: string;  //question mark just means that its optional.
     sessionEndTime?: number | null;
+    durationMinutes?: number;
+    uid?: string;
 }
 
 export interface ScanResult {

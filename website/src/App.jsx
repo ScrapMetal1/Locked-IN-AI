@@ -1,6 +1,8 @@
 import TodoInput from "./components/Todoinput";
 import TodoList from "./components/Todolist";
+import Leaderboard from "./components/Leaderboard";
 import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {auth, db, provider} from './firebase';
 import { signInWithPopup, onAuthStateChanged, signOut, connectAuthEmulator } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -14,6 +16,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [todoTime, setTodoTime] = useState(25);
   const [showCompleted, setShowCompleted] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
 
 
@@ -125,41 +129,85 @@ function App() {
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* ── Sign Out: Top Right Corner ── */}
+      
+      {/* ── Top Right Controls ── */}
       {user && (
-        <button
-          onClick={() => signOut(auth)}
-          style={{
-            position: 'fixed',
-            top: '24px',
-            right: '24px',
-            padding: '8px 16px',
-            backgroundColor: 'transparent',
-            color: '#555',
-            border: '1px solid #2a2a2a',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            fontFamily: 'var(--font)',
-            boxShadow: 'none',
-            zIndex: 10,
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.color = '#aaa';
-            e.currentTarget.style.borderColor = '#444';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.color = '#555';
-            e.currentTarget.style.borderColor = '#2a2a2a';
-          }}
-        >
-          Sign Out
-        </button>
+        <div style={{
+          position: 'fixed', top: '24px', right: '24px', 
+          display: 'flex', alignItems: 'center', gap: '12px', zIndex: 10
+        }}>
+          
+          {/* Nav Button (Trophy / Home) */}
+          <button
+            onClick={() => navigate(location.pathname === '/leaderboard' ? '/' : '/leaderboard')}
+            style={{
+              width: '36px', height: '36px',
+              backgroundColor: location.pathname === '/leaderboard' ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
+              color: location.pathname === '/leaderboard' ? '#fff' : '#555',
+              border: `1px solid ${location.pathname === '/leaderboard' ? 'rgba(34, 197, 94, 0.5)' : '#2a2a2a'}`,
+              borderRadius: '8px',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s ease', padding: 0
+            }}
+            onMouseOver={(e) => {
+              if (location.pathname !== '/leaderboard') {
+                e.currentTarget.style.color = '#aaa';
+                e.currentTarget.style.borderColor = '#444';
+              } else {
+                e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.3)';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (location.pathname !== '/leaderboard') {
+                e.currentTarget.style.color = '#555';
+                e.currentTarget.style.borderColor = '#2a2a2a';
+              } else {
+                e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.2)';
+              }
+            }}
+            title={location.pathname === '/leaderboard' ? "Go Home" : "Leaderboard"}
+          >
+            {location.pathname === '/leaderboard' ? (
+              // Home Icon
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            ) : (
+              // Trophy Icon
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 9H4.5aa2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5aa2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+              </svg>
+            )}
+          </button>
+
+          {/* Sign Out Button */}
+          <button
+            onClick={() => signOut(auth)}
+            style={{
+              padding: '8px 16px', backgroundColor: 'transparent', color: '#555',
+              border: '1px solid #2a2a2a', borderRadius: '8px', fontSize: '13px',
+              fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s ease',
+              fontFamily: 'var(--font)', height: '36px'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.color = '#aaa'; e.currentTarget.style.borderColor = '#444'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = '#555'; e.currentTarget.style.borderColor = '#2a2a2a'; }}
+          >
+            Sign Out
+          </button>
+        </div>
       )}
 
       <main>
+        <Routes>
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          
+        <Route path="/" element={ <>
         {/* ── Hero Title ── */}
         <h1 style={{ textShadow: '0 0 60px rgba(34, 197, 94, 0.15)' }}>
           Locked <span>IN</span>
@@ -301,6 +349,9 @@ function App() {
                 </div>
             </div>
         )}
+            </>
+          } />
+        </Routes>
       </main>
     </div>
   )

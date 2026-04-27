@@ -78,7 +78,7 @@ function App() {
       
       if (difference <= 0) {
         setTimeLeft_ui("00:00");
-        endSession().then(() => getSession().then(setSession_ui));
+        endSession(false, true).then(() => getSession().then(setSession_ui));
         return true; // signal to clear interval
       } else {
         const m = Math.floor((difference / 1000 / 60) % 60);
@@ -122,8 +122,9 @@ function App() {
   };
 
   const handleLockIn = async () => {
+    if (!loggedInUser_ui) return; //typescript forces this check otherwise it throws an error. 
     if (!goalDraft_text.trim()) return; // don't allow empty goal
-    await startSession(goalDraft_text, duration_min);            // 1. save to chrome.storage (persistent)
+    await startSession(goalDraft_text, duration_min, loggedInUser_ui.uid);            // 1. save to chrome.storage (persistent)
     setSession_ui(await getSession());              // 2. refresh ui from chrome.storage
   };
 
@@ -256,7 +257,7 @@ function App() {
                   transition: 'all 0.2s ease',
                 }}
               >
-                + Block Site
+                - Block Site
               </button>
               <button
                 onClick={() => {
