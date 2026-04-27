@@ -75,13 +75,22 @@ function App() {
   useEffect(() => {
     const fetchTodos = async () => {
       if (user) {
-        // ─── LOGGED IN: Read from Firebase ───
-        const userDocRef = doc(db, 'users', user.uid); //doc creates a pointer/address to the userid
-        const docSnap = await getDoc(userDocRef); // gets a snapshot of the folder
+        // ─── LOGGED IN: Read from Private Firebase Subcollection ───
+        const privateDocRef = doc(db, 'users', user.uid, 'private', 'data'); 
+        const docSnap = await getDoc(privateDocRef); 
         
         let dbTodos = [];
         if (docSnap.exists()) {
-          dbTodos = docSnap.data().todos || []; //reads the data from the snapshot and grabs the todo strings
+          dbTodos = docSnap.data().todos || [];
+        } else {
+          // AUTO-MIGRATION: Check if they have old tasks in their public profile
+          const publicDocRef = doc(db, 'users', user.uid);
+          const publicSnap = await getDoc(publicDocRef);
+          if (publicSnap.exists() && publicSnap.data().todos) {
+            dbTodos = publicSnap.data().todos;
+            // Instantly back them up to the new secure private folder
+            await setDoc(privateDocRef, { todos: dbTodos }, { merge: true });
+          }
         }
 
         // Merge stray local storage items if they were using it in offline mode
@@ -90,15 +99,15 @@ function App() {
           const localTodos = JSON.parse(localTodosStr).todos || [];
           
           localTodos.forEach(item => {
-            if (!dbTodos.includes(item)) {
+            if (!dbTodos.some(dbItem => dbItem.id === item.id)) {
               dbTodos.push(item);
             }
           });
           
           // Clear local storage since they are now backed up
           localStorage.removeItem('todos');
-          // Save the newly merged master list to Firebase
-          await setDoc(userDocRef, { todos: dbTodos }, { merge: true });
+          // Save the newly merged master list to Firebase private folder
+          await setDoc(privateDocRef, { todos: dbTodos }, { merge: true });
         }
         
         setTodos(dbTodos); // render todos onto page
@@ -119,9 +128,9 @@ function App() {
 
   async function persistData(newList) {
     if (user) {
-      // Save to Cloud
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, { todos: newList }, { merge: true });
+      // Save to Cloud (Secure Private Folder)
+      const privateDocRef = doc(db, 'users', user.uid, 'private', 'data');
+      await setDoc(privateDocRef, { todos: newList }, { merge: true });
     } else {
       // Save to Browser
       localStorage.setItem('todos', JSON.stringify({todos: newList}));
