@@ -6,6 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import './index.css';
 import { startSession, getSession, endSession, getBlocklist, setBlocklist, getAllowlist, setAllowlist } from './services/storage';
 
+
 // ─── NAMING CONVENTION ────────────────────────────────────────────────────────
 // Variables ending in _ui   → React state (only exists in memory while popup is open)
 // Variables ending in _text → raw text the user is typing (not yet saved)
@@ -27,6 +28,7 @@ function App() {
   const [blocklist_ui, setBlocklist_ui] = useState<string[]>([]);
   const [allowlist_ui, setAllowlist_ui] = useState<string[]>([]);
   const [urlInput_text, setUrlInput_text] = useState("");
+  
 
   // --- Effect 1: Watch Firebase for login/logout ---
   // runs once on mount. firebase tells us when the user logs in or out.

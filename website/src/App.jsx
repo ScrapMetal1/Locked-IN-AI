@@ -1,6 +1,8 @@
 import TodoInput from "./components/Todoinput";
 import TodoList from "./components/Todolist";
 import Leaderboard from "./components/Leaderboard";
+import ActivityBoard from "./components/ActivityBoard";
+
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {auth, db, provider} from './firebase';
@@ -349,6 +351,9 @@ function App() {
                 </div>
             </div>
         )}
+        
+        {user && <ActivityBoard userId={user.uid} />}
+
             </>
           } />
         </Routes>
