@@ -1,5 +1,5 @@
 import { analyzeUrl } from '../services/llm';
-import { getSession, endSession } from '../services/storage';
+import { getSession, endSession, getBlocklist, getAllowlist } from '../services/storage';
 
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
@@ -40,12 +40,33 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // if they're not locked in, do nothing
     if (!state.isLockedIn) return;
 
+    //check the allowlist
+    const allowlist = await getAllowlist();
+    const isAllowed = allowlist.some((site) => tab.url!.toLowerCase().includes(site));
+
+    if (isAllowed) { 
+        console.log(`Letting ${tab.url} through (allowlisted)`)
+        return;
+    }
+    
+    //check the blocklist
+    const blocklist = await getBlocklist();
+    const isBlocked = blocklist.some((site) => tab.url!.toLowerCase().includes(site));
+
+    if (isBlocked) { 
+        console.log(`Blocking ${tab.url} (blocklisted)`)
+        chrome.tabs.update(tabId, {
+            url: chrome.runtime.getURL(`blocked.html?reason=${encodeURIComponent("Custom Blocklist")}&goal=${encodeURIComponent(state.currentGoal)}`)
+        }).catch(() => console.log("Tab closed before redirect"));
+        return;
+    }
+
     // ask the backend: is this url a distraction for this goal?
     const result = await analyzeUrl(tab.url, tab.title || "", state.currentGoal);
 
 
 
-    //ERROR HANDLING
+    //ERROR HANDLING AND NOTIFICATIONS
 
     if (result.reason === "Session expired. Please log in again.") {
         chrome.notifications.create("session-expired", {
@@ -81,6 +102,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         console.log(`blocking ${tab.url} — ${result.reason}`);
         chrome.tabs.update(tabId, {
             url: chrome.runtime.getURL(`blocked.html?reason=${encodeURIComponent(result.reason)}&goal=${encodeURIComponent(state.currentGoal)}`)
-        });
+        }).catch(() => console.log("Tab closed before redirect"));
     }
 });

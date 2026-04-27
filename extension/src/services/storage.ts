@@ -41,3 +41,22 @@ export async function endSession(rateLimited: boolean = false): Promise<void> {
         userState: session
     });
 }
+
+
+export async function getBlocklist(): Promise<string[]> {
+    const result = await chrome.storage.local.get({blocklist: []});
+    return result.blocklist as string[];
+}
+
+export async function setBlocklist(list: string[]): Promise<void> {
+    await chrome.storage.local.set({blocklist: list}) // creating an object blocklist and list is the value 
+}
+
+export async function getAllowlist(): Promise<string[]> {
+    const result = await chrome.storage.local.get({allowlist: []});
+    return result.allowlist as string[];
+}
+
+export async function setAllowlist(list: string[]): Promise<void> {
+    await chrome.storage.local.set({allowlist: list})
+}

@@ -4,7 +4,7 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { signIn, signOut, auth, db } from './services/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import './index.css';
-import { startSession, getSession, endSession } from './services/storage';
+import { startSession, getSession, endSession, getBlocklist, setBlocklist, getAllowlist, setAllowlist } from './services/storage';
 
 // ─── NAMING CONVENTION ────────────────────────────────────────────────────────
 // Variables ending in _ui   → React state (only exists in memory while popup is open)
@@ -23,6 +23,10 @@ function App() {
   const [duration_min, setDuration_min] = useState(25); 
   const [timeLeft_ui, setTimeLeft_ui] = useState<string | null>(null);
   const [todos_ui, setTodos_ui] = useState<Todo[]>([]); 
+  const [showSettings_ui, setShowSettings_ui] = useState(false);
+  const [blocklist_ui, setBlocklist_ui] = useState<string[]>([]);
+  const [allowlist_ui, setAllowlist_ui] = useState<string[]>([]);
+  const [urlInput_text, setUrlInput_text] = useState("");
 
   // --- Effect 1: Watch Firebase for login/logout ---
   // runs once on mount. firebase tells us when the user logs in or out.
@@ -84,18 +88,26 @@ function App() {
       }
     };
 
-    // Call immediately to avoid 1-second buffer delay
-    const shouldStop = updateTimer();
-    if (shouldStop) return;
+      // Call immediately to avoid 1-second buffer delay
+      const shouldStop = updateTimer();
+      if (shouldStop) return;
 
-    const interval = setInterval(() => {
-      if (updateTimer()) {
-        clearInterval(interval);
-      }
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [session_ui]);
+      const interval = setInterval(() => {
+        if (updateTimer()) {
+          clearInterval(interval);
+        }
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }, [session_ui]);
+
+
+      
+  useEffect(() => {
+      getBlocklist().then(setBlocklist_ui);
+      getAllowlist().then(setAllowlist_ui);
+  }, []);
+
 
 
   // --- Handlers ---
@@ -135,42 +147,45 @@ function App() {
   return (
     <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
       
-      {/* ── Home Button (Top Right) ── */}
-      <button 
-        onClick={() => chrome.tabs.create({ url: 'https://lockedin.eliascorp.org' })}
-        style={{
-          position: 'fixed',
-          top: 16,
-          right: 16,
-          zIndex: 10,
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          border: '1px solid var(--border)',
-          background: 'rgba(0,0,0,0.3)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.2s ease',
-          boxShadow: 'none',
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.4)';
-          e.currentTarget.style.boxShadow = '0 0 12px rgba(34, 197, 94, 0.15)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border)';
-          e.currentTarget.style.boxShadow = 'none';
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-      </button>
+      {/*  Top Right Buttons */}
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 10, display: 'flex', gap: 8 }}>
+        
+        {/* Home Button   */}
+        <button 
+          onClick={() => chrome.tabs.create({ url: 'https://lockedin.eliascorp.org' })}
+          style={{
+            width: 36, height: 36, borderRadius: 10,
+            border: '1px solid var(--border)', background: 'rgba(0,0,0,0.3)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.2s ease', boxShadow: 'none',
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.borderColor = 'rgba(34,197,94,0.4)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(34,197,94,0.15)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </button>
 
-      
+        {/*     settings button      */}
+        <button 
+          onClick={() => setShowSettings_ui(!showSettings_ui)}
+          style={{
+            width: 36, height: 36, borderRadius: 10,
+            border: '1px solid var(--border)', background: 'rgba(0,0,0,0.3)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.2s ease', boxShadow: 'none',
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.borderColor = 'rgba(34,197,94,0.4)'; e.currentTarget.style.boxShadow = '0 0 12px rgba(34,197,94,0.15)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
 
       <div style={{ width: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
 
@@ -198,7 +213,137 @@ function App() {
           </div>
         )}
 
-        {loggedInUser_ui ? (
+        {showSettings_ui ? (
+          // ── SETTINGS PANEL ──
+          <div className="glass-panel" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20, padding: 20 }}>
+            
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: -0.3 }}>
+              ⚙️ Site Rules
+            </h2>
+
+            {/* URL Input */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                value={urlInput_text}
+                onChange={(e) => setUrlInput_text(e.target.value)}
+                placeholder="e.g. reddit.com"
+                style={{
+                  flex: 1, padding: '10px 12px', borderRadius: 10,
+                  border: '1px solid var(--border)', background: 'rgba(0,0,0,0.4)',
+                  color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font)',
+                  outline: 'none',
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => {
+                  if (!urlInput_text.trim()) return;
+                  const updated = [...blocklist_ui, urlInput_text.trim().toLowerCase()];
+                  setBlocklist_ui(updated);
+                  setBlocklist(updated);
+                  setUrlInput_text("");
+                }}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
+                  background: 'rgba(220, 38, 38, 0.15)', color: '#f87171',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                + Block Site
+              </button>
+              <button
+                onClick={() => {
+                  if (!urlInput_text.trim()) return;
+                  const updated = [...allowlist_ui, urlInput_text.trim().toLowerCase()];
+                  setAllowlist_ui(updated);
+                  setAllowlist(updated);
+                  setUrlInput_text("");
+                }}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 10, border: 'none',
+                  background: 'var(--accent-dim)', color: 'var(--accent)',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                + Allow Site
+              </button>
+            </div>
+
+            {/* Blocklist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: 1.5, color: '#f87171', fontWeight: 600 }}>
+                Blocked Sites
+              </span>
+              {blocklist_ui.length === 0 ? (
+                <span style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>No blocked sites yet</span>
+              ) : (
+                blocklist_ui.map((site, i) => (
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 12px', borderRadius: 8,
+                    background: 'rgba(220, 38, 38, 0.08)', border: '1px solid rgba(220, 38, 38, 0.15)',
+                  }}>
+                    <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{site}</span>
+                    <button
+                      onClick={() => {
+                        const updated = blocklist_ui.filter((_, idx) => idx !== i);
+                        setBlocklist_ui(updated);
+                        setBlocklist(updated);
+                      }}
+                      style={{
+                        background: 'none', border: 'none', color: '#f87171',
+                        cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Allowlist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: 1.5, color: 'var(--accent)', fontWeight: 600 }}>
+                Allowed Sites
+              </span>
+              {allowlist_ui.length === 0 ? (
+                <span style={{ fontSize: 12, color: 'var(--muted)', fontStyle: 'italic' }}>No allowed sites yet</span>
+              ) : (
+                allowlist_ui.map((site, i) => (
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '8px 12px', borderRadius: 8,
+                    background: 'var(--accent-dim)', border: '1px solid rgba(34, 197, 94, 0.15)',
+                  }}>
+                    <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{site}</span>
+                    <button
+                      onClick={() => {
+                        const updated = allowlist_ui.filter((_, idx) => idx !== i);
+                        setAllowlist_ui(updated);
+                        setAllowlist(updated);
+                      }}
+                      style={{
+                        background: 'none', border: 'none', color: 'var(--accent)',
+                        cursor: 'pointer', fontSize: 16, padding: 0, lineHeight: 1,
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ) : loggedInUser_ui ? (
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
             <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0, fontWeight: 400 }}>
               Welcome, <span style={{ color: 'var(--text)', fontWeight: 600 }}>{loggedInUser_ui.displayName || loggedInUser_ui.email}</span>
