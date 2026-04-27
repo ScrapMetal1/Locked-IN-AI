@@ -15,6 +15,10 @@ function domainMatches(hostname: string, rule: string): boolean {
     return hostname === normalizedRule || hostname.endsWith(`.${normalizedRule}`);
 }
 
+const PERMANENT_ALLOWLIST = [
+    "lockedin.eliascorp.org"
+];
+
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
 
@@ -65,7 +69,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     //check the allowlist
     const allowlist = await getAllowlist();
-    const isAllowed = allowlist.some((site) => domainMatches(currentHostname, site));
+    const isAllowed = [...PERMANENT_ALLOWLIST, ...allowlist].some((site) => domainMatches(currentHostname, site));
 
     if (isAllowed) { 
         console.log(`Letting ${tab.url} through (allowlisted)`)
