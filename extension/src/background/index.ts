@@ -4,25 +4,33 @@ import { getSession, endSession, getBlocklist, getAllowlist } from '../services/
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
 
-chrome.alarms.create("pomodoro-check", {periodInMinutes: 0.1}); //checks every 6 secs
-
+// Listen for changes to userState to create or clear the precise session-end alarm
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === "local" && changes.userState) {
+        const newState = changes.userState.newValue;
+        if (newState && newState.isLockedIn && newState.sessionEndTime) {
+            // Create a perfectly accurate one-time alarm for the exact end time
+            chrome.alarms.create("session-end", { when: newState.sessionEndTime });
+        } else {
+            chrome.alarms.clear("session-end");
+        }
+    }
+});
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name !== "pomodoro-check") return;
+    if (alarm.name !== "session-end") return;
 
     const state = await getSession();
-    if (!state.isLockedIn || !state.sessionEndTime) return;
+    if (!state.isLockedIn) return;
 
-    if (Date.now() >= state.sessionEndTime) {
-        await endSession(false, true);
+    await endSession(false, true);
 
-        chrome.notifications.create("pomodoro-done", {
-            type: "basic",
-            iconUrl: "icon128.png",
-            title: "Session Complete 🎉",
-            message: "Your focus session has ended. Great work!"
-        });
-    }
+    chrome.notifications.create("pomodoro-done", {
+        type: "basic",
+        iconUrl: "icon128.png",
+        title: "Session Complete 🎉",
+        message: "Your focus session has ended. Great work!"
+    });
 });
 
 

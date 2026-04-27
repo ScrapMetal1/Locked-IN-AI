@@ -12,11 +12,17 @@ export default function Leaderboard() {
       setLoading(true);
       try {
         const now = new Date();
-        const todayStr = now.toISOString().split("T")[0];
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
         
         const sunday = new Date(now);
         sunday.setDate(now.getDate() - now.getDay());
-        const weekStr = sunday.toISOString().split("T")[0];
+        const sunYear = sunday.getFullYear();
+        const sunMonth = String(sunday.getMonth() + 1).padStart(2, '0');
+        const sunDay = String(sunday.getDate()).padStart(2, '0');
+        const weekStr = `${sunYear}-${sunMonth}-${sunDay}`;
 
         // 1. Tell Firebase exactly which field to sort by
         let orderByField = "stats.allTime";

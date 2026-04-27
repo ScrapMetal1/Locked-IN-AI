@@ -42,12 +42,17 @@ export async function endSession(rateLimited: boolean = false, completedNaturall
         const userRef = doc(db, "users", prevState.uid);
 
         const now = new Date();
-        const todayStr = now.toISOString().split("T")[0]; // Something like: "2026-04-27"
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
         
-        // Find the Sunday of the current week
-        const sunday = new Date(now); // data object
-        sunday.setDate(now.getDate() - now.getDay()); //date - minus day of the week. Sunday would be 0, Monday 1
-        const weekStr = sunday.toISOString().split("T")[0]; // Sunday Date 
+        const sunday = new Date(now);
+        sunday.setDate(now.getDate() - now.getDay());
+        const sunYear = sunday.getFullYear();
+        const sunMonth = String(sunday.getMonth() + 1).padStart(2, '0');
+        const sunDay = String(sunday.getDate()).padStart(2, '0');
+        const weekStr = `${sunYear}-${sunMonth}-${sunDay}`;
 
         try {
             await setDoc(userRef, {
