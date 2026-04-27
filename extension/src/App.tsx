@@ -83,7 +83,7 @@ function App() {
         endSession(false, true).then(() => getSession().then(setSession_ui));
         return true; // signal to clear interval
       } else {
-        const m = Math.floor((difference / 1000 / 60) % 60);
+        const m = Math.floor(difference / 1000 / 60);
         const s = Math.floor((difference / 1000) % 60);
         setTimeLeft_ui(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
         return false;

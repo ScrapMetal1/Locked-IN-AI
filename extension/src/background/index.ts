@@ -1,5 +1,6 @@
 import { analyzeUrl } from '../services/llm';
 import { getSession, endSession, getBlocklist, getAllowlist } from '../services/storage';
+import type { UserState } from '../types';
 
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
@@ -7,7 +8,7 @@ import { getSession, endSession, getBlocklist, getAllowlist } from '../services/
 // Listen for changes to userState to create or clear the precise session-end alarm
 chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === "local" && changes.userState) {
-        const newState = changes.userState.newValue;
+        const newState = changes.userState.newValue as UserState;
         if (newState && newState.isLockedIn && newState.sessionEndTime) {
             // Create a perfectly accurate one-time alarm for the exact end time
             chrome.alarms.create("session-end", { when: newState.sessionEndTime });
