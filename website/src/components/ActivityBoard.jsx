@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ActivityCalendar } from 'react-activity-calendar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function ActivityBoard({ userId }) {
+  const calendarContainerRef = useRef(null);
+
   // Initialize with an empty year so the board shows INSTANTLY
   const [data, setData] = useState(() => {
     const emptyCalendar = [];
@@ -66,6 +68,18 @@ export default function ActivityBoard({ userId }) {
     fetchStats();
   }, [userId]);
 
+  useEffect(() => {
+    const container = calendarContainerRef.current;
+    if (!container) return;
+
+    // Start on the newest days for a cleaner first impression.
+    const frame = window.requestAnimationFrame(() => {
+      container.scrollLeft = container.scrollWidth;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [data.length]);
+
 
   return (
     <section style={{
@@ -90,7 +104,15 @@ export default function ActivityBoard({ userId }) {
          Deep Work Activity
        </h3>
        
-       <div className="calendar-container">
+      <div
+        ref={calendarContainerRef}
+        className="calendar-container"
+        style={{
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          width: '100%',
+        }}
+      >
          <ActivityCalendar 
            data={data} 
            theme={{

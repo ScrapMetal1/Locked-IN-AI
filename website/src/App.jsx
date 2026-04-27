@@ -21,6 +21,20 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  function parseStoredTodos(rawValue) {
+    if (!rawValue) return [];
+
+    try {
+      const parsed = JSON.parse(rawValue);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && Array.isArray(parsed.todos)) return parsed.todos;
+    } catch (error) {
+      console.error('Failed to parse saved todos:', error);
+    }
+
+    return [];
+  }
+
 
 
 
@@ -75,42 +89,45 @@ function App() {
   useEffect(() => {
     const fetchTodos = async () => {
       if (user) {
-        // ─── LOGGED IN: Read from Private Firebase Subcollection ───
+        // ─── LOGGED IN: Read from private Firebase doc ───
         const privateDocRef = doc(db, 'users', user.uid, 'private', 'data'); 
-        const docSnap = await getDoc(privateDocRef); 
-        
         let dbTodos = [];
-        if (docSnap.exists()) {
-          dbTodos = docSnap.data().todos || [];
+
+        try {
+          const privateSnap = await getDoc(privateDocRef);
+          if (privateSnap.exists()) {
+            dbTodos = Array.isArray(privateSnap.data().todos) ? privateSnap.data().todos : [];
+          }
+        } catch (error) {
+          console.error('Failed to fetch private todos:', error);
         }
 
         // Merge stray local storage items if they were using it in offline mode
         const localTodosStr = localStorage.getItem('todos');
         if (localTodosStr) {
-          const localTodos = JSON.parse(localTodosStr).todos || [];
-          
-          localTodos.forEach(item => {
-            if (!dbTodos.some(dbItem => dbItem.id === item.id)) {
-              dbTodos.push(item);
+          const localTodos = parseStoredTodos(localTodosStr);
+          const mergedTodos = [...dbTodos];
+          const existingIds = new Set(dbTodos.map(todo => todo.id));
+
+          localTodos.forEach((todo) => {
+            if (!existingIds.has(todo.id)) {
+              mergedTodos.push(todo);
             }
           });
+          dbTodos = mergedTodos;
           
           // Clear local storage since they are now backed up
           localStorage.removeItem('todos');
-          // Save the newly merged master list to Firebase private folder
-          await setDoc(privateDocRef, { todos: dbTodos }, { merge: true });
         }
+
+        await setDoc(privateDocRef, { todos: dbTodos }, { merge: true });
         
         setTodos(dbTodos); // render todos onto page
       } else {
 
         // ─── LOGGED OUT: Read from Local Storage ───
         const localTodosStr = localStorage.getItem('todos');
-        if (localTodosStr) {
-          setTodos(JSON.parse(localTodosStr).todos);
-        } else {
-          setTodos([]);
-        }
+        setTodos(parseStoredTodos(localTodosStr));
       }
     };
 
@@ -119,7 +136,7 @@ function App() {
 
   async function persistData(newList) {
     if (user) {
-      // Save to Cloud (Secure Private Folder)
+      // Save to Cloud (private data doc)
       const privateDocRef = doc(db, 'users', user.uid, 'private', 'data');
       await setDoc(privateDocRef, { todos: newList }, { merge: true });
     } else {
@@ -337,6 +354,7 @@ function App() {
                 
                 {/* Collapsible list */}
                 <div style={{
+                    width: '100%',
                     maxHeight: showCompleted ? '1000px' : '0px',
                     overflow: 'hidden',
                     transition: 'max-height 0.4s ease',

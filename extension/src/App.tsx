@@ -56,9 +56,9 @@ function App() {
   useEffect(() => {
       if (loggedInUser_ui) {
           const fetchTodos = async () => {
-            const userDocRef = doc(db, 'users', loggedInUser_ui.uid);
-            const docSnap = await getDoc(userDocRef);
-            const allTodos = docSnap.data()?.todos || [];
+            const privateDocRef = doc(db, 'users', loggedInUser_ui.uid, 'private', 'data');
+            const docSnap = await getDoc(privateDocRef);
+            const allTodos = Array.isArray(docSnap.data()?.todos) ? docSnap.data()?.todos : [];
             setTodos_ui(allTodos.filter((t: Todo) => !t.completed));
           }
           fetchTodos();
