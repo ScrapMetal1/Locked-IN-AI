@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 export default function TodoInput(props) {
 
     const { todoValue, setTodoValue, handleAddTodos, todoTime, setTodoTime } = props

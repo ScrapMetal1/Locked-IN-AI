@@ -63,14 +63,14 @@ function App() {
           }
           fetchTodos();
         } else {
-          setTodos_ui([]);
+          setTimeout(() => setTodos_ui([]), 0);
         }
   }, [loggedInUser_ui]);
   
   
   useEffect(() => {
     if (!session_ui?.isLockedIn || !session_ui?.sessionEndTime) {
-      setTimeLeft_ui(null);
+      setTimeout(() => setTimeLeft_ui(null), 0);
       return;
     }
 

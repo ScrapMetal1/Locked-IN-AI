@@ -32,6 +32,12 @@ const AnalyseSchema = z.object({
     title: z.string().optional()
 });
 
+const VerdictSchema = z.object({
+    allow: z.boolean(),
+    reason: z.string(),
+    thinking: z.string().optional(),
+});
+
 // Initialise Firebase Admin (Only once)
 if (!admin.apps.length) { //number of apps running  
     admin.initializeApp();
@@ -210,14 +216,20 @@ app.post("/analyze", async (c) => {
         }
 
         const parsed = JSON.parse(text); // turn the string into a json object '{ "allow": true, "reason": "relevant" }' --> { allow: true, reason: "relevant" }
-        console.log(`[${uid}] verdict: ${parsed.allow ? "ALLOW" : "BLOCK"} — ${parsed.reason}`);
+        const verdict = VerdictSchema.safeParse(parsed);
+        if (!verdict.success) {
+            console.error("AI returned invalid verdict shape");
+            return c.json({ error: "AI returned invalid response" }, 500);
+        }
 
-        return c.json(parsed);  // send clean object as HTTP response with proper headers to front end 
+        console.log(`[${uid}] verdict: ${verdict.data.allow ? "ALLOW" : "BLOCK"} — ${verdict.data.reason}`);
+
+        return c.json(verdict.data);  // send clean object as HTTP response with proper headers to front end 
 
 
-    } catch (err: any) {
+    } catch (err) {
         console.error(err);
-        return c.json({ error: "AI Failed: " + (err.message || err.toString()) }, 500);
+        return c.json({ error: "AI request failed" }, 500);
     }
 });
 

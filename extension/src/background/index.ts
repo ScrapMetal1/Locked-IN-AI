@@ -2,6 +2,19 @@ import { analyzeUrl } from '../services/llm';
 import { getSession, endSession, getBlocklist, getAllowlist } from '../services/storage';
 import type { UserState } from '../types';
 
+function normalizeDomain(input: string): string {
+    return input
+        .toLowerCase()
+        .replace(/^https?:\/\//, "")
+        .replace(/^www\./, "")
+        .split("/")[0];
+}
+
+function domainMatches(hostname: string, rule: string): boolean {
+    const normalizedRule = normalizeDomain(rule);
+    return hostname === normalizedRule || hostname.endsWith(`.${normalizedRule}`);
+}
+
 // this is the brain of the extension — runs silently, no ui
 // watches every tab and decides if it should be blocked
 
@@ -42,6 +55,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     // skip internal browser pages like chrome:// or about:blank
     if (!tab.url.startsWith("http://") && !tab.url.startsWith("https://")) return;
+    const currentHostname = normalizeDomain(new URL(tab.url).hostname);
 
     // read what the user set up — are they in a session? what's their goal?
     const state = await getSession();
@@ -51,7 +65,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     //check the allowlist
     const allowlist = await getAllowlist();
-    const isAllowed = allowlist.some((site) => tab.url!.toLowerCase().includes(site));
+    const isAllowed = allowlist.some((site) => domainMatches(currentHostname, site));
 
     if (isAllowed) { 
         console.log(`Letting ${tab.url} through (allowlisted)`)
@@ -60,7 +74,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     
     //check the blocklist
     const blocklist = await getBlocklist();
-    const isBlocked = blocklist.some((site) => tab.url!.toLowerCase().includes(site));
+    const isBlocked = blocklist.some((site) => domainMatches(currentHostname, site));
 
     if (isBlocked) { 
         console.log(`Blocking ${tab.url} (blocklisted)`)
@@ -84,6 +98,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             title: "Session Expired",
             message: "Please open the extension and sign in again."
         });
+        chrome.tabs.update(tabId, {
+            url: chrome.runtime.getURL(`blocked.html?reason=${encodeURIComponent(result.reason)}&goal=${encodeURIComponent(state.currentGoal)}`)
+        }).catch(() => console.log("Tab closed before redirect"));
         return;
     }
 

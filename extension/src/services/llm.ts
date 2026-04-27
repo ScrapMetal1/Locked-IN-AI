@@ -20,8 +20,8 @@ export async function analyzeUrl(url: string, title: string, goal: string): Prom
 
     // no token means not logged in — it shouldn't happen but just in case the token expires let them through. 
     if (!token) {
-      console.warn("analyzeUrl: user not logged in, allowing by default.");
-      return { allowed: true, reason: "Session expired. Please log in again." };
+      console.warn("analyzeUrl: user not logged in while locked in session.");
+      return { allowed: false, reason: "Session expired. Please log in again." };
       //return { allowed: true, reason: "User not logged in." }; 
     }
 
