@@ -82,15 +82,6 @@ function App() {
         let dbTodos = [];
         if (docSnap.exists()) {
           dbTodos = docSnap.data().todos || [];
-        } else {
-          // AUTO-MIGRATION: Check if they have old tasks in their public profile
-          const publicDocRef = doc(db, 'users', user.uid);
-          const publicSnap = await getDoc(publicDocRef);
-          if (publicSnap.exists() && publicSnap.data().todos) {
-            dbTodos = publicSnap.data().todos;
-            // Instantly back them up to the new secure private folder
-            await setDoc(privateDocRef, { todos: dbTodos }, { merge: true });
-          }
         }
 
         // Merge stray local storage items if they were using it in offline mode
