@@ -6,7 +6,7 @@ Also theres a leaderboard. Come compete against me!
 
 ## Installation
 
-1.  **Download the Extension:** Go to the [Releases](https://github.com/ScrapMetal1/Locked-IN-AI/releases/tag/V1.1) page and download the `locked-in-ai.zip` file.
+1.  **Download the Extension:** Go to the [Releases](https://github.com/ScrapMetal1/Locked-IN-AI/releases/tag/V1.1) page and download the `dist.zip` file.
 2.  **Unpack the file:** Extract the contents of the ZIP folder to a location on your computer.
 3.  **Enable Developer Mode:** Open Google Chrome and navigate to `chrome://extensions/`. In the top-right corner, toggle the **Developer mode** switch to **ON**.
 4.  **Load the Extension:** Click the **Load unpacked** button as shown below and select the folder you just extracted.
