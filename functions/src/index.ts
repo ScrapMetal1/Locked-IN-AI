@@ -227,8 +227,12 @@ app.post("/analyze", async (c) => {
         return c.json(verdict.data);  // send clean object as HTTP response with proper headers to front end 
 
 
-    } catch (err) {
+    } catch (err: any) {
         console.error(err);
+        if (err?.status === 429) {
+            // Return 503 so the frontend doesn't think the user's daily 1000 limit was reached
+            return c.json({ error: "AI rate limit (RPM) reached temporarily" }, 503);
+        }
         return c.json({ error: "AI request failed" }, 500);
     }
 });
