@@ -20,7 +20,7 @@ Also theres a leaderboard. Come compete against me!
 ### Caching and predefined blocklists (Chrome Storage API)
 **What was improved:** Reduced database reads, network latency, and API costs.
 **How it works:** Instead of querying the remote database (Firebase) on every tab navigation, the extension caches the `userState`, `blocklist`, and `allowlist` locally using `chrome.storage.local`. 
-**Results:** Tab analysis times dropped from ~300ms (network request) to `<10ms` (local read), resulting in instant blocking of distracting sites without noticeable browser lag. The background service worker employs an early-exit algorithm when a tab updates. It first checks the cached `isLockedIn` state and the local `allowlist` / `blocklist`. If a user isn't locked in, or if the URL matches a predefined list, the function returns immediately.
+**Results:** Tab analysis times dropped from ~300ms API call to `<10ms` (local read), resulting in instant blocking of distracting sites without noticeable browser lag. The background service worker employs an early-exit algorithm when a tab updates. It first checks the cached `isLockedIn` state and the local `allowlist` / `blocklist`. If a user isn't locked in, or if the URL matches a predefined list, the function returns immediately.
 **Results:** Prevents the heavy `analyzeUrl` (LLM) function from running unnecessarily, which saves device battery life, reduces memory spikes, and prevents hitting Vertex AI rate limits.
 ## License & Legal
 **Copyright (c) 2026 EliasCorp. All Rights Reserved.**
