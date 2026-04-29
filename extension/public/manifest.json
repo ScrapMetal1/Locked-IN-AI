@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjwAB8QRfI/bJknGfooRyi+b9FAKOWJW7CmCdcYWfK+UcIz/pAo1JWYPqYcDH6m+lz05jLzL9uvzNCBy/kv/EHKrw4hNn/DIU51smUiyoTN9LFqr1CClhNmeKhx/+PGwZs8l1lljqAv3TgZkpevLg7T6G3aRBiQvo9e86vbBmqmgfZAGMPmR/ymzFxXEeeI7u3Ur2PTeL9odZIghZcLVy7CbjGkznmMktPMh8VmdXZpcAPcM3JgtMNix9rmxbdSYmZFf289xL4grn0zl2A6yqkHp6+2uZu61LiW//Vv6gOULe2CypVHYN4qS2y9kUCA1W4I8OPA4QTHseCSWmZIO+CQIDAQAB",
     "name": "Locked In - AI",
-    "version": "1.0",
+    "version": "1.1",
     "description": "Distraction Blocker compliant with your goals",
     "permissions": [
         "alarms",
