@@ -9,7 +9,7 @@ Also theres a leaderboard. Come compete against me!
 1.  **Download the Extension:** Go to the [Releases](https://github.com/ScrapMetal1/Locked-IN-AI/releases/tag/V1.1) page and download the `dist.zip` file.
 2.  **Unpack the file:** Extract the contents of the ZIP folder to a location on your computer.
 3.  **Enable Developer Mode:** Open Google Chrome and navigate to `chrome://extensions/`. In the top-right corner, toggle the **Developer mode** switch to **ON**.
-4.  **Load the Extension:** Click the **Load unpacked** button as shown below and select the folder you just extracted.
+4.  **Load the Extension:** Click the **Load unpacked** button as shown below and select the folder you just extracted. The dist folder inside the dist folder. The nested one. 
 5.  **Pin for Easy Access:** Click the puzzle piece icon in your Chrome toolbar and pin **Locked In — AI** for quick access.
 
 ![Installation Guide](image-1.png)
