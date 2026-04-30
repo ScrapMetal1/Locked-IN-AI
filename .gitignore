@@ -70,3 +70,7 @@ node_modules/
 
 
 *.zip
+
+*.pem
+
+*.crx
