@@ -14,7 +14,7 @@
 
 <img width="235" height="156" alt="image" src="https://github.com/user-attachments/assets/c705efd1-0de7-4b28-8b2b-eec5ccc58532" />
 
-3.  **Drag and drop the .crx file:** Drag and drop the .crx file into chrome extension.
+3.  **Drag and drop the .crx file:** Drag and drop the .crx file into the extensions page. 
 
 <img width="958" height="351" alt="pV8wr8krk9" src="https://github.com/user-attachments/assets/a1dc8165-873b-4678-8376-1b712b80f66b" />
 
