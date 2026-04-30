@@ -67,6 +67,7 @@ export async function saveUserProfile(user: User) {
 
 // This checks if anyone is currently logged in. Promise is a wait. A buzzer.
 export async function getIdToken(): Promise<string | null> {
+    await auth.authStateReady(); // Wait for Firebase Auth to restore session from IndexedDB
     const user = auth.currentUser;
     if (user) {
         return await user.getIdToken();
